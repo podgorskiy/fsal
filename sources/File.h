@@ -40,6 +40,10 @@ namespace fsal
 		
 		Status Flush();
 
+		const uint8_t* GetDataPointer() const;
+
+		uint8_t* GetDataPointer();
+
 		template<typename T>
 		Status Read(T& data)
 		{

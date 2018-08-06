@@ -59,3 +59,13 @@ Status File::Flush()
 {
 	return m_file->FlushBuffer();
 }
+
+const uint8_t* File::GetDataPointer() const
+{
+	return m_file->GetDataPointer();
+}
+
+uint8_t* File::GetDataPointer()
+{
+	return m_file->GetDataPointer();
+}
