@@ -22,11 +22,11 @@ path Location::GetCurrentDirectory()
 	return cCurrentPath;
 }
 
-Location::Location(const char* filepath, Options location, PathType type, LinkType link) : m_filepath(filepath), m_relartiveTo(location), m_type(type), m_link(link)
+Location::Location(const char* filepath, Options location, PathType type, LinkType link) : m_filepath(fs::u8path(filepath)), m_relartiveTo(location), m_type(type), m_link(link)
 {
 }
 
-Location::Location(const std::string& filepath, Options location, PathType type, LinkType link) : m_filepath(filepath), m_relartiveTo(location), m_type(type), m_link(link)
+Location::Location(const std::string& filepath, Options location, PathType type, LinkType link) : m_filepath(fs::u8path(filepath)), m_relartiveTo(location), m_type(type), m_link(link)
 {
 }
 

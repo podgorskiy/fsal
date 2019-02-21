@@ -1,5 +1,6 @@
 #include "fsal.h"
 #include "StdFile.h"
+#include "FastPathNormalization.h"
 
 #include <vector>
 #include <functional>
@@ -33,7 +34,7 @@ FileSystem::FileSystem()
 void fsal::FileSystem::PushSearchPath(const Location& location)
 {
 	std::lock_guard<std::mutex> lock(m_impl->searchPathsMutex);
-	m_impl->searchPaths.push_back(location.GetFullPath());
+	m_impl->searchPaths.push_back(NormalizePath(location.GetFullPath()));
 }
 
 void fsal::FileSystem::PopSearchPath()
@@ -110,7 +111,7 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 	}
 
 	// Second check. Search paths
-	if (location.m_relartiveTo == Location::kSearchPaths || location.m_relartiveTo == Location::kSearchPathsAndArchives)
+	if (location.m_relartiveTo == Location::kCurrentDirectory || location.m_relartiveTo == Location::kSearchPaths || location.m_relartiveTo == Location::kSearchPathsAndArchives)
 	{
 		std::lock_guard<std::mutex> lock(m_impl->searchPathsMutex);
 		for (std::vector<path>::iterator it = m_impl->searchPaths.begin(), end = m_impl->searchPaths.end(); it != end; ++it)
@@ -121,12 +122,15 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 
 			path fullpath = absoluteLocation.GetFullPath();
 
-			if (fs::exists(fullpath) && CheckAttributes(location.m_type, location.m_link, fullpath))
+			if (fs::exists(fullpath))
 			{
-				type = fs::is_directory(fullpath) ? kDirectory : kFile;
-				absolutePath = fullpath;
-				archive = Archive();
-				return Status::Succeeded();
+				if (CheckAttributes(location.m_type, location.m_link, fullpath))
+				{
+					type = fs::is_directory(fullpath) ? kDirectory : kFile;
+					absolutePath = fullpath;
+					archive = Archive();
+					return Status::Succeeded();
+				}
 			}
 		}
 	}

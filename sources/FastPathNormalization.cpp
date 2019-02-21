@@ -69,7 +69,7 @@ inline bool AcceptDotEntry(const char* src, const char*& p)
 	return false;
 }
 
-void fsal::NormalizePath(const char* src, char* dst, int len, char*& filename, int& depth)
+void fsal::NormalizePath(const char* src, char* dst, size_t len, char*& filename, int& depth)
 {
 	char* dstIt = dst + len - 1;
 	const char* srcIt = src + len - 1;
@@ -151,11 +151,18 @@ void fsal::NormalizePath(const char* src, char* dst, int len, char*& filename, i
 	filename = p;
 }
 
-void fsal::NormalizePath(const std::string src, std::string& dst)
+fsal::fs::path fsal::NormalizePath(const fs::path& src)
+{
+	return fs::u8path(NormalizePath(src.u8string()));
+}
+
+std::string fsal::NormalizePath(const std::string& src)
 {
 	int depth = 0;
 	int filenamePos = 0;
+	std::string dst;
 	NormalizePath(src, dst, filenamePos, depth);
+	return dst;
 }
 
 void fsal::NormalizePath(const std::string src, std::string& dst, int& filenamePos, int& depth)

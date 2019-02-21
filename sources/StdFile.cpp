@@ -55,7 +55,14 @@ Status StdFile::Open(path filepath, Mode mode)
 	}
 
 	m_path = fs::absolute(filepath);
+#ifdef WIN32
+	std::wstring wmodeStr;
+	std::string smodeStr(modeStr);
+	wmodeStr.assign(smodeStr.begin(), smodeStr.end());
+	m_file = _wfopen(m_path.wstring().c_str(), wmodeStr.c_str());
+#else
 	m_file = std::fopen(m_path.string().c_str(), modeStr);
+#endif
 	if (m_file == nullptr)
 	{
 		return Status::Failed();

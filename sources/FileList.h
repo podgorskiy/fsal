@@ -27,7 +27,7 @@ namespace fsal
 		// Name of the entry. Ends with slash for directories
 		int filenamePos;
 
-		// Depth is file tree. Files in the root dir have zero depth
+		// Depth in file tree. Files in the root dir have zero depth
 		int depth;
 
 		UserData data;
@@ -72,7 +72,7 @@ namespace fsal
 				std::sort(m_fileList.begin(), m_fileList.end());
 				int depth = 0;
 				depthTable.push_back(0);
-				for (int i = 0, l = m_fileList.size(); i != l; ++i)
+				for (int i = 0, l = (int)m_fileList.size(); i != l; ++i)
 				{
 					if (depth != m_fileList[i].depth)
 					{
@@ -82,7 +82,7 @@ namespace fsal
 						depth = newDepth;
 					}
 				}
-				depthTable.push_back(m_fileList.size());
+				depthTable.push_back((int)m_fileList.size());
 				sorted = true;
 			}
 
@@ -116,14 +116,14 @@ namespace fsal
 
 			if (getLowerBound)
 			{
-				return left;
+				return (int)left;
 			}
 			else
 			{
 				bool less = key.path < m_fileList[it].path;
 				if (!(left == right) && !less)
 				{
-					return left;
+					return (int)left;
 				}
 			}
 
@@ -144,7 +144,7 @@ namespace fsal
 
 			int index = GetIndex((path / "a").string(), true);
 
-			int lastIndex = m_fileList[index].depth + 1 < (int)depthTable.size() ? depthTable[m_fileList[index].depth + 1] : m_fileList.size();
+			int lastIndex = m_fileList[index].depth + 1 < (int)depthTable.size() ? depthTable[m_fileList[index].depth + 1] : (int)m_fileList.size();
 
 			FileEntry<UserData> key(path.string());
 
