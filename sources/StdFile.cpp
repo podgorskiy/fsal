@@ -123,7 +123,7 @@ size_t StdFile::GetSize() const
 	return size;
 }
 
-Status StdFile::FlushBuffer()
+Status StdFile::FlushBuffer() const
 {
 	return std::fflush(m_file) ? Status::Succeeded() : Status::Failed();
 }

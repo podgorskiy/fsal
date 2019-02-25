@@ -24,13 +24,17 @@ namespace fsal
 		
 		File(FileInterface* file);
 
-		bool ok() const;
-		
-		Status Read(uint8_t* destanation, size_t size, size_t* readBytes = nullptr);
+		operator bool() const;
+
+		operator std::string() const;
+
+		void operator =(const std::string& x);
+
+		Status Read(uint8_t* destanation, size_t size, size_t* readBytes = nullptr) const;
 		
 		Status Write(const uint8_t* source, size_t size);
 		
-		Status Seek(ptrdiff_t offset, Origin origin);
+		Status Seek(ptrdiff_t offset, Origin origin = Beginning) const;
 
 		size_t Tell() const;
 		
@@ -38,7 +42,7 @@ namespace fsal
 		
 		path GetPath() const;
 		
-		Status Flush();
+		Status Flush() const;
 
 		const uint8_t* GetDataPointer() const;
 
@@ -54,14 +58,6 @@ namespace fsal
 		Status Write(const T& data)
 		{
 			return Write(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
-		}
-
-		operator std::string()
-		{
-			std::string buff;
-			buff.resize(GetSize());
-			Read(const_cast<uint8_t*>((const uint8_t*)(buff.data())), buff.size());
-			return buff;
 		}
 
 	private:

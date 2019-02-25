@@ -1,5 +1,6 @@
 #pragma once
 #include "File.h"
+#include "FileStream.h"
 
 #include <cstdint>
 #include <cstring>
@@ -9,15 +10,16 @@ namespace fsal
 	template<typename T>
 	inline void operator << (File& f, const T& d)
 	{
-		f.Write(d);
+		fsal::FileStream(f) << d;
 	};
 
 	template<typename T>
 	inline void operator >> (File& f, T& d)
 	{
-		f.Read(d);
+		fsal::FileStream(f) >> d;
 	};
 
+	/*
 	template<>
 	inline void operator << <std::string>(File& f, const std::string& s)
 	{
@@ -34,4 +36,5 @@ namespace fsal
 		// mystring[mystring.size()] is guaranteed to be '\0'
 		f.Read(reinterpret_cast<uint8_t*>(&s[0]), size);
 	};
+	*/
 }

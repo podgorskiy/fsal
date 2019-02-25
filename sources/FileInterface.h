@@ -26,7 +26,7 @@ namespace fsal
 
 		virtual size_t GetSize() const = 0;
 
-		virtual Status FlushBuffer() = 0;
+		virtual Status FlushBuffer() const = 0;
 		
 		virtual const uint8_t* GetDataPointer() const = 0;
 

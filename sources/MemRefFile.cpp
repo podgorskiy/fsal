@@ -108,7 +108,7 @@ size_t MemRefFile::GetSize() const
 	return m_size;
 }
 
-Status MemRefFile::FlushBuffer()
+Status MemRefFile::FlushBuffer() const
 {
 	return Status::Succeeded();
 }

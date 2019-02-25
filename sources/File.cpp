@@ -11,12 +11,27 @@ File::File(FileInterface* file): m_file(file)
 {
 }
 
-bool File::ok() const
+File::operator bool() const
 {
 	return m_file != nullptr;
 }
 
-Status File::Read(uint8_t* destanation, size_t size, size_t* readBytes)
+File::operator std::string() const
+{
+	std::string buff;
+	buff.resize(GetSize());
+	Seek(0);
+	Read(const_cast<uint8_t*>((const uint8_t*)(buff.data())), buff.size());
+	return buff;
+}
+
+void File::operator =(const std::string& x)
+{
+	Seek(0);
+	Write(const_cast<uint8_t*>((const uint8_t*)(x.data())), x.size());
+}
+
+Status File::Read(uint8_t* destanation, size_t size, size_t* readBytes) const
 {
 	return m_file->ReadData(destanation, size, readBytes);
 }
@@ -26,7 +41,7 @@ Status File::Write(const uint8_t* source, size_t size)
 	return m_file->WriteData(source, size);
 }
 
-Status File::Seek(ptrdiff_t offset, Origin origin)
+Status File::Seek(ptrdiff_t offset, Origin origin) const
 {
 	switch (origin)
 	{
@@ -55,7 +70,7 @@ path File::GetPath() const
 	return m_file->GetPath();
 }
 
-Status File::Flush()
+Status File::Flush() const
 {
 	return m_file->FlushBuffer();
 }

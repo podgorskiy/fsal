@@ -34,7 +34,7 @@ namespace fsal
 
 		virtual size_t GetSize() const  override;
 
-		virtual Status FlushBuffer()  override;
+		virtual Status FlushBuffer() const override;
 
 		virtual const uint8_t* GetDataPointer() const  override;
 
