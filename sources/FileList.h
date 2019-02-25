@@ -54,7 +54,7 @@ namespace fsal
 	public:
 		UserData FindEntry(const fs::path& path)
 		{
-			FileEntry<UserData> key(path.string());
+			FileEntry<UserData> key(path.u8string());
 
 			int index = GetIndex(key);
 			if (index != -1)
@@ -146,12 +146,12 @@ namespace fsal
 
 			int lastIndex = m_fileList[index].depth + 1 < (int)depthTable.size() ? depthTable[m_fileList[index].depth + 1] : (int)m_fileList.size();
 
-			FileEntry<UserData> key(path.string());
+			std::string u8path = path.u8string();
 
-			size_t key_size = key.path.length();
+			size_t key_size = u8path.size();
 
 			// Starting from the obtained low bound, we are going to grab all paths that start with given path.
-			while(index != -1 && index < lastIndex && m_fileList[index].path.compare(0, key_size, key.path) == 0)
+			while(index != -1 && index < lastIndex && m_fileList[index].path.compare(0, key_size, u8path) == 0)
 			{
 				const FileEntry<UserData>& entry = m_fileList[index];
 				std::string filename(entry.path.begin() + entry.filenamePos, entry.path.end());

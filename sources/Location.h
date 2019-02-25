@@ -116,11 +116,11 @@ namespace fsal
 
 		};
 
-		Location(const char* filepath, Options location = kCurrentDirectory, PathType type = kFile | kDirectory, LinkType link = kNotSymlink | kSymlink);
+		Location(const char* filepath, Options location = kSearchPathsAndArchives, PathType type = kFile | kDirectory, LinkType link = kNotSymlink | kSymlink);
 
-		Location(const std::string& filepath, Options location = kCurrentDirectory, PathType type = kFile | kDirectory, LinkType link = kNotSymlink | kSymlink);
+		Location(const std::string& filepath, Options location = kSearchPathsAndArchives, PathType type = kFile | kDirectory, LinkType link = kNotSymlink | kSymlink);
 
-		Location(const path& filepath, Options location = kCurrentDirectory, PathType type = kFile | kDirectory, LinkType link = kNotSymlink | kSymlink);
+		Location(const path& filepath, Options location = kSearchPathsAndArchives, PathType type = kFile | kDirectory, LinkType link = kNotSymlink | kSymlink);
 		
 		Location(Options location);
 

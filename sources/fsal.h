@@ -31,7 +31,7 @@ namespace fsal
 
 		void ClearSearchPaths();
 		
-		Status AddArchive(const Archive& archive);
+		Status AddArchive(const File& archive);
 
 	private:
 		Status Find(const Location& location, path& absolutePath, PathType& type, Archive& archive);

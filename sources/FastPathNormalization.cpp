@@ -175,3 +175,17 @@ void fsal::NormalizePath(const std::string src, std::string& dst, int& filenameP
 	filenamePos = (int)(filename - c_dst);
 	dst.resize(strlen(c_dst));
 }
+
+void fsal::NormalizePath(const fs::path _src, fs::path& _dst, int& filenamePos, int& depth)
+{
+	std::string dst;
+	std::string src = _src.u8string();
+	dst.resize(src.length());
+	const char* c_src = src.c_str();
+	char* c_dst = &dst[0];
+	char* filename = nullptr;
+	NormalizePath(c_src, c_dst, src.length(), filename, depth);
+	filenamePos = (int)(filename - c_dst);
+	dst.resize(strlen(c_dst));
+	_dst = fs::u8path(dst);
+}

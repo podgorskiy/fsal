@@ -2,6 +2,7 @@
 #include "fsal_common.h"
 #include "ZipArchive.h"
 #include "FileStream.h"
+#include "MemRefFile.h"
 #include <cassert>
 
 using namespace fsal;
@@ -128,12 +129,12 @@ File ZipReader::OpenFile(const fs::path& filepath)
 
 	if (entry.offset != -1)
 	{
-		printf("\tFile content:\n");
-		char* data = new char[entry.sizeUncompressed];
+		auto* memfile = new MemRefFile();
+		memfile->Resize(entry.sizeUncompressed);
+		auto* data = memfile->GetDataPointer();
 		file.Seek(entry.offset, File::Beginning);
 		file.Read((uint8_t*)data, entry.sizeUncompressed);
-		fwrite(data, sizeof(char), entry.sizeUncompressed, stdout);
-		delete[] data;
+		return memfile;
 	}
 
 	return File();
@@ -141,7 +142,7 @@ File ZipReader::OpenFile(const fs::path& filepath)
 
 bool ZipReader::Exists(const fs::path& filepath, PathType type)
 {
-	std::string path = filepath.generic_string();
+	std::string path = filepath.u8string();
 	if (path.back() != '/' && type == PathType::kDirectory)
 	{
 		path += "/";

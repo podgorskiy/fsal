@@ -1,6 +1,7 @@
 #include "fsal.h"
 #include "StdFile.h"
 #include "FastPathNormalization.h"
+#include "ZipArchive.h"
 
 #include <vector>
 #include <functional>
@@ -52,12 +53,16 @@ void fsal::FileSystem::ClearSearchPaths()
 	m_impl->searchPaths.clear();
 }
 
-Status fsal::FileSystem::AddArchive(const Archive& archive)
+Status fsal::FileSystem::AddArchive(const File& archive)
 {
-	if (archive.Valid())
+	if (archive)
 	{
-		m_impl->archives.push_back(archive);
-		return true;
+		Archive archiveReader(ArchiveReaderInterfacePtr((ArchiveReaderInterface*)new ZipReader()));
+		if (archiveReader.OpenArchive(archive))
+		{
+			m_impl->archives.push_back(archiveReader);
+			return true;
+		}
 	}
 	return false;
 }
@@ -194,7 +199,7 @@ File fsal::FileSystem::Open(const Location& location, Mode mode)
 
 	if (archive.Valid())
 	{
-		return archive.Open(absolutePath);
+		return archive.OpenFile(absolutePath);
 	}
 	else
 	{

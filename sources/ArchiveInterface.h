@@ -17,6 +17,8 @@ namespace fsal
 		virtual std::vector<std::string> ListDirectory(const fs::path& path) = 0;
 	};
 
+	typedef std::shared_ptr<ArchiveReaderInterface> ArchiveReaderInterfacePtr;
+
 	class ArchiveWriterInterface
 	{
 	public:
@@ -26,4 +28,6 @@ namespace fsal
 
 		virtual Status CreateDirectory(const fs::path& path) = 0;
 	};
+
+	typedef std::shared_ptr<ArchiveWriterInterface> ArchiveWriterInterfacePtr;
 }

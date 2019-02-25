@@ -49,6 +49,7 @@ path Location::GetFullPath() const
 		return m_filepath;
 	}
 	case kCurrentDirectory:
+	case kSearchPathsAndArchives:
 	{
 		if (m_filepath.is_absolute())
 		{

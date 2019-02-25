@@ -7,9 +7,15 @@ namespace fsal
 	class Archive
 	{
 	public:
+		Archive();
+
+		Archive(ArchiveReaderInterfacePtr reader);
+
 		bool Valid() const;
 
-		File Open(const fs::path& filepath);
+		Status OpenArchive(File file);
+
+		File OpenFile(const fs::path& filepath);
 
 		bool Exists(const fs::path& filepath, PathType type = kFile | kDirectory);
 
@@ -18,6 +24,6 @@ namespace fsal
 		Status CreateDirectory(const fs::path& path);
 
 	private:
-		std::shared_ptr<ArchiveReaderInterface> m_impl;
+		ArchiveReaderInterfacePtr m_impl;
 	};
 }

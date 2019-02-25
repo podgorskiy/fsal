@@ -40,8 +40,8 @@ namespace fsal
 
 		virtual uint8_t* GetDataPointer()  override;
 
-	private:
 		bool Resize(size_t newSize);
+	private:
 
 		uint8_t* m_data;
 		std::shared_ptr<uint8_t> m_sharedData;
