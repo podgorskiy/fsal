@@ -1,5 +1,4 @@
 #pragma once
-#include "File.h"
 #include "FileStream.h"
 
 #include <cstdint>
@@ -10,13 +9,13 @@ namespace fsal
 	template<typename T>
 	inline void operator << (File& f, const T& d)
 	{
-		fsal::FileStream(f) << d;
+		::fsal::FileStream(f) << d;
 	};
 
 	template<typename T>
 	inline void operator >> (File& f, T& d)
 	{
-		fsal::FileStream(f) >> d;
+		::fsal::FileStream(f) >> d;
 	};
 
 	/*

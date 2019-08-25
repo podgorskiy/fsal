@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdlib>
+#include <cstring>
 
 #ifndef BFIO_INCLUDE_VECTOR
 #define BFIO_INCLUDE_VECTOR 1

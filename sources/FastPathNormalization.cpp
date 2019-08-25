@@ -1,5 +1,8 @@
 #include "FastPathNormalization.h"
 
+#include <cstring>
+
+
 inline bool IsSlash(char a)
 {
 	return (a == '\\' || a == '/');

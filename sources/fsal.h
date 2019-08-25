@@ -3,6 +3,7 @@
 #include "Status.h"
 #include "Location.h"
 #include "File.h"
+#include "FileStream.h"
 #include "ReadWriteShortcuts.h"
 #include "Archive.h"
 

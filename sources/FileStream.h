@@ -1,6 +1,6 @@
 #pragma once
 #include "bfio.h"
-#include "fsal.h"
+#include "File.h"
 
 namespace fsal
 {

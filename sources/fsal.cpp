@@ -7,14 +7,14 @@
 #include <functional>
 #include <mutex>
 
-using namespace fsal;
-
-struct ::fsal::FsalImplementation
+struct fsal::FsalImplementation
 {
 	std::vector<Archive> archives;
 	std::vector<path> searchPaths;
 	std::mutex searchPathsMutex;
 };
+
+using namespace fsal;
 
 #define FSAL_SINGLETON
 

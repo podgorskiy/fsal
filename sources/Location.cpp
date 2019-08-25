@@ -57,8 +57,8 @@ path Location::GetFullPath() const
 		}
 		return GetCurrentDirectory() / m_filepath;
 	}
-	case kTemp:
 #ifdef WIN32
+	case kTemp:
 		char buff[1024];
 		GetTempPath(1024, buff);
 		return path(buff) / m_filepath;

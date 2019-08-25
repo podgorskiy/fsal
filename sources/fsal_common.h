@@ -16,13 +16,26 @@ namespace fsal
 
 #elif USING_CPP11_EXPERIMENTAL_FOR_PATHS
 
-#include <filesystem>
+#if (__cplusplus == 201402L)
+#include <experimental/filesystem>
 
 namespace fsal
 {
 	namespace fs =  std::experimental::filesystem;
 	typedef std::experimental::filesystem::path path;
 }
+
+#elif (__cplusplus >= 201703L)
+#include <filesystem>
+
+namespace fsal
+{
+	namespace fs =  std::filesystem;
+	typedef std::filesystem::path path;
+}
+
+#endif
+
 #endif
 
 namespace fsal

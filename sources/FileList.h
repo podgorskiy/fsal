@@ -11,7 +11,7 @@ namespace fsal
 	template<typename UserData>
 	struct FileEntry
 	{
-		FileEntry(): depth(0), size(0), offset(-1){};
+		FileEntry(): depth(0), offset(-1){};
 		FileEntry(const std::string& str) : depth(0), data(UserData())
 		{
 			NormalizePath(str, path, filenamePos, depth);
@@ -23,6 +23,8 @@ namespace fsal
 
 		// Full path in archive.
 		std::string path;
+
+		size_t offset;
 
 		// Name of the entry. Ends with slash for directories
 		int filenamePos;
