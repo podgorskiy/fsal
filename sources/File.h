@@ -10,6 +10,8 @@ namespace fsal
 	class FileInterface;
 	class File;
 
+	inline void null_deleter(FileInterface*) {}
+
 	class File
 	{
 	public:
@@ -20,9 +22,13 @@ namespace fsal
 			End
 		};
 
+		struct borrow {};
+
 		File();
-		
+
 		File(FileInterface* file);
+
+		File(FileInterface* file, borrow);
 
 		operator bool() const;
 

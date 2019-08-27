@@ -11,6 +11,10 @@ File::File(FileInterface* file): m_file(file)
 {
 }
 
+File::File(FileInterface* file, File::borrow): m_file(file, null_deleter)
+{
+}
+
 File::operator bool() const
 {
 	return m_file != nullptr;

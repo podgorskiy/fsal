@@ -137,3 +137,8 @@ uint8_t* StdFile::GetDataPointer()
 {
 	return nullptr;
 }
+
+void StdFile::AssignFile(FILE* file)
+{
+	m_file = file;
+}

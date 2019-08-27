@@ -35,6 +35,7 @@ namespace fsal
 
 		virtual uint8_t* GetDataPointer()  override;
 
+		void AssignFile(FILE* file);
 	private:
 		FILE* m_file;
 		path m_path;
