@@ -2,6 +2,7 @@
 #include "fsal_common.h"
 #include "File.h"
 #include <vector>
+#include <functional>
 
 namespace fsal
 {
@@ -11,6 +12,8 @@ namespace fsal
 		virtual Status OpenArchive(File file) = 0;
 
 		virtual File OpenFile(const fs::path& filepath) = 0;
+
+		virtual void* OpenFile(const fs::path& filepath, std::function<void*(size_t size)> alloc_func) = 0;
 
 		virtual bool Exists(const fs::path& filepath, PathType type = kFile | kDirectory) = 0;
 

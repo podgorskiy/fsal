@@ -125,7 +125,7 @@ Status ZipReader::OpenArchive(File file_)
 		entry.generalPurposeBitFlag = header.generalPurposBbitFlag;
 		entry.sizeUncompressed = header.dataDescriptor.uncompressedSize;
 		entry.sizeCompressed = header.dataDescriptor.compressedSize;
-		entry.offset = file.Tell() + fileHeader.extraFieldLength;
+		entry.offset = header.relativeOffsetOfLocalHeader + sizeof(fileHeader) + fileHeader.fileNameLength + fileHeader.extraFieldLength;
 
 		filelist.Add(entry, filename);
 
@@ -136,7 +136,6 @@ Status ZipReader::OpenArchive(File file_)
 
 	return true;
 }
-
 
 File ZipReader::OpenFile(const fs::path& filepath)
 {
@@ -240,6 +239,76 @@ File ZipReader::OpenFile(const fs::path& filepath)
 	}
 
 	return File();
+}
+
+void* ZipReader::OpenFile(const fs::path& filepath, std::function<void*(size_t size)> alloc)
+{
+	ZipEntryData entry = filelist.FindEntry(filepath);
+
+	if (entry.offset != -1)
+	{
+		switch (entry.compressionMethod)
+		{
+			case ZIP_COMPRESSION::NONE:
+			{
+				auto* data = alloc(entry.sizeUncompressed);
+				fileMutex.lock();
+				file.Seek(entry.offset, File::Beginning);
+				file.Read((uint8_t*)data, entry.sizeUncompressed);
+				fileMutex.unlock();
+				return data;
+			}
+
+			case ZIP_COMPRESSION::DEFLATE:
+			{
+				auto* uncompressedBuffer = alloc(entry.sizeUncompressed);
+				char* compressedBuffer = new char[entry.sizeCompressed];
+
+				fileMutex.lock();
+				file.Seek(entry.offset, File::Beginning);
+				file.Read((uint8_t*)compressedBuffer, entry.sizeCompressed);
+				fileMutex.unlock();
+
+				z_stream stream = {0};
+				int32_t err;
+				stream.next_in = (Bytef*)compressedBuffer;
+				stream.avail_in = (uInt)entry.sizeCompressed;
+				stream.next_out = (Bytef*)uncompressedBuffer;
+				stream.avail_out = entry.sizeUncompressed;
+				stream.zalloc = (alloc_func)nullptr;
+				stream.zfree = (free_func)nullptr;
+
+				err = inflateInit2(&stream, -MAX_WBITS);
+				if (err == Z_OK)
+				{
+					err = inflate(&stream, Z_FINISH);
+					inflateEnd(&stream);
+					if (err == Z_STREAM_END)
+					{
+						err = Z_OK;
+					}
+					inflateEnd(&stream);
+				}
+
+				if (err != Z_OK)
+				{
+					delete[] compressedBuffer;
+					return nullptr;
+				}
+				else
+				{
+					delete[] compressedBuffer;
+					return uncompressedBuffer;
+				}
+			}
+			default:
+			{
+				return nullptr;
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 bool ZipReader::Exists(const fs::path& filepath, PathType type)

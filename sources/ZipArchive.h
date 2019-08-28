@@ -96,6 +96,8 @@ namespace fsal
 
 		virtual File OpenFile(const fs::path& filepath) override;
 
+		virtual void* OpenFile(const fs::path& filepath, std::function<void*(size_t size)> alloc_func) override;
+
 		virtual bool Exists(const fs::path& filepath, PathType type = kFile | kDirectory) override;
 
 		virtual std::vector<std::string> ListDirectory(const fs::path& path) override;
