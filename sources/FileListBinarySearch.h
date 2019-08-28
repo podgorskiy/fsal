@@ -11,7 +11,7 @@ namespace fsal
 	template<typename UserData>
 	struct FileEntry
 	{
-		FileEntry(): depth(0), offset(-1){};
+		FileEntry(): depth(0) {};
 		FileEntry(const std::string& str) : depth(0), data(UserData())
 		{
 			NormalizePath(str, path, filenamePos, depth);
@@ -23,8 +23,6 @@ namespace fsal
 
 		// Full path in archive.
 		std::string path;
-
-		size_t offset;
 
 		// Name of the entry. Ends with slash for directories
 		int filenamePos;
@@ -48,6 +46,13 @@ namespace fsal
 		{
 			return a.depth < b.depth;
 		}
+	}
+
+	inline int strcmpl(const char * __restrict l, const char * __restrict r, const char*& __restrict end)
+	{
+		for (; *l==*r && *l; ++l, ++r);
+		end=r;
+		return *(unsigned char *)l - *(unsigned char *)r;
 	}
 
 	template<typename UserData>
@@ -88,7 +93,7 @@ namespace fsal
 				sorted = true;
 			}
 
-			if (!(key.depth + 1 < (int)depthTable.size()))
+			if (key.depth + 1 >= (int)depthTable.size())
 			{
 				return -1;
 			}
@@ -100,36 +105,53 @@ namespace fsal
 			// Searching for lower bound
 			size_t count = right - left;
 
+			const char* key_cstr = key.path.c_str();
+			int start_compare_from = 0;
+			int start_compare_from_l = 0;
+			int start_compare_from_r = 0;
+
+			auto* __restrict file_list = &m_fileList[0];
+			const char* end = key_cstr;
+
 			while (count > 0)
 			{
 				it = left;
 				size_t step = count / 2;
 				it += step;
 
-				bool less = m_fileList[it].path < key.path;
-				if (less)
+				int res = strcmpl(file_list[it].path.c_str() + start_compare_from, key_cstr + start_compare_from, end);
+				if (res == 0)
+				{
+					//printf("%s\n", file_list[it].path.c_str());
+					return (int)left;
+				}
+
+				if (res < 0)
 				{
 					left = ++it;
 					count -= step + 1;
+					start_compare_from_l = end - key_cstr - 1;
 				}
 				else
+				{
 					count = step;
+					start_compare_from_r = end - key_cstr - 1;
+				}
+				start_compare_from = std::min(start_compare_from_l, start_compare_from_r);
 			}
 
 			if (getLowerBound)
 			{
 				return (int)left;
 			}
-			else
-			{
-				bool less = key.path < m_fileList[it].path;
-				if (!(left == right) && !less)
-				{
-					return (int)left;
-				}
-			}
 
 			return -1;
+		}
+
+		bool Exists(const FileEntry<UserData>& key)
+		{
+			auto index = GetIndex(key);
+			return index != -1;
 		}
 
 		void Add(const UserData& data, const std::string& path)

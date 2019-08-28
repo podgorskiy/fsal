@@ -144,6 +144,8 @@ Status ZipReader::OpenArchive(File file_)
 			}
 		}
 	}
+	FileEntry<ZipEntryData> key("");
+	filelist.GetIndex(key);
 
 	return true;
 }
@@ -155,12 +157,12 @@ File ZipReader::OpenFile(const fs::path& filepath)
 
 	if (entry.offset != -1)
 	{
-		auto* memfile = new MemRefFile();
-		memfile->Resize(entry.sizeUncompressed);
-		auto* data = memfile->GetDataPointer();
-		file.Seek(entry.offset, File::Beginning);
-		file.Read((uint8_t*)data, entry.sizeUncompressed);
-		return memfile;
+//		auto* memfile = new MemRefFile();
+//		memfile->Resize(entry.sizeUncompressed);
+//		auto* data = memfile->GetDataPointer();
+//		file.Seek(entry.offset, File::Beginning);
+//		file.Read((uint8_t*)data, entry.sizeUncompressed);
+//		return memfile;
 	}
 
 	return File();
@@ -176,9 +178,7 @@ bool ZipReader::Exists(const fs::path& filepath, PathType type)
 
 	FileEntry<ZipEntryData> key(path);
 
-	int index = filelist.GetIndex(key);
-
-	return index != -1;
+	return filelist.Exists(key);
 }
 
 std::vector<std::string> ZipReader::ListDirectory(const fs::path& path)

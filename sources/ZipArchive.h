@@ -1,6 +1,7 @@
 #pragma once
 #include "ArchiveInterface.h"
-#include "FileList.h"
+#include "FileListBinarySearch.h"
+// #include "FileListHashMap.h"
 
 namespace fsal
 {
