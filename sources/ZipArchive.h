@@ -14,6 +14,8 @@ namespace fsal
 		};
 	}
 
+#pragma pack(push,1)
+
 	struct DataDescriptor
 	{
 		int32_t CRC32;
@@ -73,6 +75,8 @@ namespace fsal
 		int16_t	compressionMethod = 0;
 		int16_t	generalPurposeBitFlag = 0;
 	};
+
+#pragma pack(pop)
 
 	class ZipReader: ArchiveReaderInterface
 	{

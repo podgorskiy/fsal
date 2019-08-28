@@ -87,9 +87,21 @@ Status ZipReader::OpenArchive(File file_)
 	CentralDirectoryHeader header;
 	LocalFileHeader fileHeader;
 
+	{
+		bfio::SizeCalculator s;
+		s << header;
+		assert(s.GetSize() == sizeof(header));
+	}
+	{
+		bfio::SizeCalculator s;
+		s << fileHeader;
+		assert(s.GetSize() == sizeof(fileHeader));
+	}
+
 	for (int i = 0;; ++i)
 	{
-		stream >> header;
+		// stream >> header;
+		file.Read(header);
 
 		assert(header.centralFileHeaderSignature == ZIP_SIGNATURES::CENTRAL_DIRECTORY_FILE_HEADER);
 
@@ -97,15 +109,14 @@ Status ZipReader::OpenArchive(File file_)
 
 		file.Seek(header.relativeOffsetOfLocalHeader, File::Beginning);
 
-		stream >> fileHeader;
+		// stream >> fileHeader;
+		file.Read(fileHeader);
 
 		assert(fileHeader.localFileHeaderSignature == ZIP_SIGNATURES::LOCAL_HEADER);
 
 		filename.resize(fileHeader.fileNameLength);
 
 		file.Read((uint8_t*)&filename[0], fileHeader.fileNameLength);
-
-		//printf("%s\n", filename.data());
 
 		ZipEntryData entry;
 		entry.compressionMethod = fileHeader.compressionMethod;

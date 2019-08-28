@@ -135,7 +135,6 @@ namespace fsal
 		void Add(const UserData& data, const std::string& path)
 		{
 			FileEntry<UserData> entry(path, data);
-			std::lock_guard<std::mutex> lock(m_table_modification);
 			m_fileList.push_back(entry);
 			sorted = false;
 		}
@@ -164,10 +163,11 @@ namespace fsal
 			return result;
 		}
 
+		std::mutex m_table_modification;
+
 	private:
 		std::vector<int> depthTable;
 		std::vector<FileEntry<UserData> > m_fileList;
-		std::mutex m_table_modification;
 		bool sorted = false;
 	};
 }
