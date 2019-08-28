@@ -15,6 +15,16 @@ namespace fsal
 		};
 	}
 
+	namespace ZIP_COMPRESSION
+	{
+		enum Compression
+		{
+			NONE = 0,
+			DEFLATE = 8,
+			LZ4 = 30
+		};
+	}
+
 #pragma pack(push,1)
 
 	struct DataDescriptor
@@ -92,6 +102,7 @@ namespace fsal
 	private:
 		FileList<ZipEntryData> filelist;
 		File file;
+		std::mutex fileMutex;
 	};
 
 	class ZipWriter : ArchiveWriterInterface
