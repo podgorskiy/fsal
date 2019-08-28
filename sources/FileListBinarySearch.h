@@ -123,7 +123,7 @@ namespace fsal
 				if (res == 0)
 				{
 					//printf("%s\n", file_list[it].path.c_str());
-					return (int)left;
+					return (int)it;
 				}
 
 				if (res < 0)
