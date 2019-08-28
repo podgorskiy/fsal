@@ -84,9 +84,11 @@ Status ZipReader::OpenArchive(File file_)
 
 	std::string filename;
 
-	for (int i = 0; i < ecdr.totalNumberOfEntriesInTheCentralDirectory; ++i)
+	CentralDirectoryHeader header;
+	LocalFileHeader fileHeader;
+
+	for (int i = 0;; ++i)
 	{
-		CentralDirectoryHeader header;
 		stream >> header;
 
 		assert(header.centralFileHeaderSignature == ZIP_SIGNATURES::CENTRAL_DIRECTORY_FILE_HEADER);
@@ -94,8 +96,6 @@ Status ZipReader::OpenArchive(File file_)
 		size_t currPos = file.Tell();
 
 		file.Seek(header.relativeOffsetOfLocalHeader, File::Beginning);
-
-		LocalFileHeader fileHeader;
 
 		stream >> fileHeader;
 
@@ -117,6 +117,21 @@ Status ZipReader::OpenArchive(File file_)
 		filelist.Add(entry, filename);
 
 		file.Seek(currPos + header.fileNameLength + header.extraFieldLength + header.fileCommentLength, File::Beginning);
+
+		if (ecdr.totalNumberOfEntriesInTheCentralDirectory >= 0)
+		{
+			if (i >= ecdr.totalNumberOfEntriesInTheCentralDirectory)
+			{
+				break;
+			}
+		}
+		else
+		{
+			if (file.Tell() - ecdr.offsetOfStartOfCentralDirectory >= ecdr.sizeOfTheCentralDirectory)
+			{
+				break;
+			}
+		}
 	}
 
 	return true;
