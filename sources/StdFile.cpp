@@ -5,7 +5,7 @@
 
 using namespace fsal;
 
-StdFile::StdFile()
+StdFile::StdFile(): m_file(nullptr)
 {
 
 }
@@ -77,7 +77,7 @@ Status StdFile::ReadData(uint8_t* dst, size_t size, size_t* bytesRead)
 	{
 		*bytesRead = retSize;
 	}
-	return retSize == size ? Status::Succeeded() : Status::Failed();
+	return retSize == size ? Status::Succeeded() : (std::feof(m_file) ? Status::EndOfFile() : Status::Failed());
 }
 
 Status StdFile::WriteData(const uint8_t* src, size_t size)

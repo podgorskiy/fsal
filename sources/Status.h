@@ -8,6 +8,7 @@ namespace fsal
 		enum State
 		{
 			kOK,
+			kEOF,
 			kFailed
 		};
 
@@ -43,6 +44,11 @@ namespace fsal
 		static Status Succeeded()
 		{
 			return Status(kOK);
+		}
+
+		static Status EndOfFile()
+		{
+			return Status(kEOF);
 		}
 	};
 }
