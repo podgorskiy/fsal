@@ -483,7 +483,7 @@ namespace bfio
 		MemoryStream(const MemoryStream& other) = delete; // non construction-copyable
 		MemoryStream& operator=(const MemoryStream&) = delete; // non copyable
 	public:
-		MemoryStream(char* data, size_t size) : m_size(size), m_offset(0), m_data(data)
+		MemoryStream(char* data, size_t size) : m_data(data), m_size(size), m_offset(0)
 		{};
 
 		size_t GetSize() const

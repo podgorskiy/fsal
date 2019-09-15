@@ -34,14 +34,12 @@ Location::Location(const path& filepath, Options location, PathType type, LinkTy
 {
 }
 
-Location::Location(Options location) : m_relartiveTo(location)
+Location::Location(Options location) : m_relartiveTo(location), m_type(kFile | kDirectory), m_link(kSymlink | kNotSymlink)
 {
 }
 
 path Location::GetFullPath() const
 {
-	Options relartiveTo = m_relartiveTo;
-
 	switch (m_relartiveTo)
 	{
 	case kAbsolute:
@@ -66,6 +64,8 @@ path Location::GetFullPath() const
 	}
 
 #ifdef WIN32
+	Options relartiveTo = m_relartiveTo;
+
 	KNOWNFOLDERID id;
 
 #define WINCASE(X) case kWin_##X: id = FOLDERID_##X; break;

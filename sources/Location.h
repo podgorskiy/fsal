@@ -35,11 +35,11 @@ namespace fsal
 			kNS_LibraryDirectory = kStorageSynced,	// Various user-visible documentation, support, and configuration files (/Library).
 			kNS_CachesDirectory = kStorageLocal,    // Location of discardable cache files (Library/Caches).
 			kNS_UserDirectory = kUsers,			    // User home directories (/Users).
-			kNS_DesktopDirectory = kDesktop, 	    // Location of user’s desktop directory.
+			kNS_DesktopDirectory = kDesktop, 	    // Location of userï¿½s desktop directory.
 			kNS_MusicDirectory = kMusic,		    // Location of user's Music directory (~/Music)
 			kNS_PicturesDirectory = kPictures,	    // Location of user's Pictures directory (~/Pictures)
 			kNS_SharedPublicDirectory = kPublic,    // Location of user's Public sharing directory (~/Public)
-			kNS_DownloadsDirectory = kDownloads,    // Location of the user’s downloads directory.
+			kNS_DownloadsDirectory = kDownloads,    // Location of the userï¿½s downloads directory.
 			kNS_TrashDirectory = kTrashDirectory,
 
 			kNS_ApplicationDirectory = 0x100,	    // Supported applications (/Applications).
@@ -49,7 +49,7 @@ namespace fsal
 			kNS_DeveloperDirectory, 			    // Developer resources (/Developer).
 			kNS_DocumentationDirectory, 		    // Documentation.
 			kNS_CoreServiceDirectory, 			    // Location of core services (System/Library/CoreServices).
-			kNS_AutosavedInformationDirectory, 	    // Location of user’s autosaved documents Library/Autosave Information
+			kNS_AutosavedInformationDirectory, 	    // Location of userï¿½s autosaved documents Library/Autosave Information
 			kNS_ApplicationSupportDirectory, 	    // Location of application support files (Library/Application Support).
 			kNS_InputMethodsDirectory, 			    // Location of Input Methods (Library/Input Methods)
 			kNS_MoviesDirectory, 				    // Location of user's Movies directory (~/Movies)
@@ -129,8 +129,8 @@ namespace fsal
 		path GetFullPath() const;
 
 	private:
-		Options m_relartiveTo;
 		path m_filepath;
+		Options m_relartiveTo;
 		PathType m_type;
 		LinkType m_link;
 	};

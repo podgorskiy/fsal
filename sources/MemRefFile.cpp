@@ -31,7 +31,7 @@ MemRefFile::MemRefFile(uint8_t* data, size_t size, bool copy): m_data(data), m_s
 	}
 }
 
-MemRefFile::MemRefFile(std::shared_ptr<uint8_t> data, size_t size) : m_data(data.get()), m_sharedData(data), m_size(size), m_offset(0), m_hasOwnership(false)
+MemRefFile::MemRefFile(std::shared_ptr<uint8_t> data, size_t size) : m_data(data.get()), m_sharedData(data), m_size(size), m_offset(0), m_hasOwnership(false), m_reserved(size)
 {
 }
 
@@ -134,12 +134,12 @@ bool MemRefFile::Resize(size_t newSize)
 		uint64_t v = newSize + 1;
 
 		v--;
-		v |= v >> 1;
-		v |= v >> 2;
-		v |= v >> 4;
-		v |= v >> 8;
-		v |= v >> 16;
-		v |= v >> 32;
+		v |= v >> 1U;
+		v |= v >> 2U;
+		v |= v >> 4U;
+		v |= v >> 8U;
+		v |= v >> 16U;
+		v |= v >> 32U;
 		v++;
 
 		m_reserved = static_cast<size_t>(v);

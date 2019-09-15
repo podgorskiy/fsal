@@ -100,9 +100,8 @@ Status ZipReader::OpenArchive(File file_)
 		assert(s.GetSize() == sizeof(fileHeader));
 	}
 
-	for (int i = 0; file.Tell() - ecdr.offsetOfStartOfCentralDirectory < ecdr.sizeOfTheCentralDirectory;++i)
+	for (int i = 0; (int32_t)file.Tell() - ecdr.offsetOfStartOfCentralDirectory < ecdr.sizeOfTheCentralDirectory;++i)
 	{
-		// stream >> header;
 		file.Read(header);
 
 		assert(header.centralFileHeaderSignature == ZIP_SIGNATURES::CENTRAL_DIRECTORY_FILE_HEADER);
@@ -111,7 +110,6 @@ Status ZipReader::OpenArchive(File file_)
 
 		file.Seek(header.relativeOffsetOfLocalHeader, File::Beginning);
 
-		// stream >> fileHeader;
 		file.Read(fileHeader);
 
 		assert(fileHeader.localFileHeaderSignature == ZIP_SIGNATURES::LOCAL_HEADER);

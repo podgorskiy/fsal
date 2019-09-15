@@ -41,7 +41,7 @@ void fsal::FileSystem::PushSearchPath(const Location& location)
 void fsal::FileSystem::PopSearchPath()
 {
 	std::lock_guard<std::mutex> lock(m_impl->searchPathsMutex);
-	if (m_impl->searchPaths.size() > 0)
+	if (!m_impl->searchPaths.empty())
 	{
 		m_impl->searchPaths.pop_back();
 	}
@@ -74,13 +74,13 @@ static bool CheckAttributes(PathType type, LinkType link, const path& fullPath)
 	bool is_symlink = fs::is_symlink(fullPath);
 
 	if (0
-	    || (type & kFile) && is_regular_file
-	    || (type & kDirectory) && is_directory
+	    || ((type & kFile) && is_regular_file)
+	    || ((type & kDirectory) && is_directory)
 			)
 	{
 		if (0
-		    || (link & kSymlink) && is_symlink
-		    || (link & kNotSymlink) && !is_symlink
+		    || ((link & kSymlink) && is_symlink)
+		    || ((link & kNotSymlink) && !is_symlink)
 				)
 		{
 			return true;
