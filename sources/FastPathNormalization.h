@@ -6,6 +6,8 @@ namespace fsal
 {
 	fs::path NormalizePath(const fs::path& src);
 
+	std::string NormalizePath(const char* src);
+
 	std::string NormalizePath(const std::string& src);
 
 	void NormalizePath(const std::string src, std::string& dst, int& filenamePos, int& depth);

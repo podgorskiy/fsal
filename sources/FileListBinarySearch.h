@@ -165,11 +165,11 @@ namespace fsal
 		{
 			std::vector<std::string> result;
 
-			int index = GetIndex((path / "a").string(), true);
+			int index = GetIndex((path / "a").u8string(), true);
 
 			int lastIndex = m_fileList[index].depth + 1 < (int)depthTable.size() ? depthTable[m_fileList[index].depth + 1] : (int)m_fileList.size();
 
-			std::string u8path = path.u8string();
+			std::string u8path = NormalizePath(path.u8string());
 
 			size_t key_size = u8path.size();
 

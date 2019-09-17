@@ -159,6 +159,19 @@ fsal::fs::path fsal::NormalizePath(const fs::path& src)
 	return fs::u8path(NormalizePath(src.u8string()));
 }
 
+std::string fsal::NormalizePath(const char* src)
+{
+	std::string dst;
+	size_t len = strlen(src);
+	dst.resize(len);
+	char* c_dst = &dst[0];
+	char* filename = nullptr;
+	int depth = 0;
+	NormalizePath(src, c_dst, len, filename, depth);
+	dst.resize(strlen(c_dst));
+	return dst;
+}
+
 std::string fsal::NormalizePath(const std::string& src)
 {
 	int depth = 0;
