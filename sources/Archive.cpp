@@ -14,11 +14,6 @@ bool Archive::Valid() const
 	return m_impl != nullptr;
 }
 
-Status Archive::OpenArchive(File file)
-{
-	return m_impl->OpenArchive(file);
-}
-
 File Archive::OpenFile(const fs::path& filepath)
 {
 	return m_impl->OpenFile(filepath);

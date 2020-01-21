@@ -130,12 +130,12 @@ namespace fsal
 				{
 					left = ++it;
 					count -= step + 1;
-					start_compare_from_l = end - key_cstr - 1;
+					start_compare_from_l = end - key_cstr;
 				}
 				else
 				{
 					count = step;
-					start_compare_from_r = end - key_cstr - 1;
+					start_compare_from_r = end - key_cstr;
 				}
 				start_compare_from = std::min(start_compare_from_l, start_compare_from_r);
 			}

@@ -28,6 +28,7 @@ namespace fsal
 			kPublic,							// kNS_SharedPublicDirectory kWin_Public
 			kDownloads,							// kNS_DownloadsDirectory kWin_Downloads
 			kTrashDirectory,					// kNS_TrashDirectory kWin_RecycleBinFolder
+			kLog,								// Log directory
 			kTemp,								// Temprorary directory
 
 			// Apple NeXTSTEP
@@ -124,9 +125,20 @@ namespace fsal
 		
 		Location(Options location);
 
-		static path GetCurrentDirectory();
+		Location() = default;
 
 		path GetFullPath() const;
+
+		static path GetCurrentDirectory();
+
+		static path GetSytemPath(Location::Options relartiveTo);
+
+		Location operator / (const path& p)
+		{
+			Location other(*this);
+			other.m_filepath = m_filepath / p;
+			return other;
+		}
 
 	private:
 		path m_filepath;

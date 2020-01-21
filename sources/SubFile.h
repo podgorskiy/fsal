@@ -3,26 +3,21 @@
 #include "FileInterface.h"
 
 #include <cstdio>
-#include <memory>
 
 namespace fsal
 {
-	class MemRefFile : public FileInterface
+	class SubFile : public FileInterface
 	{
 	public:
-		MemRefFile();
+		SubFile();
 
-		MemRefFile(uint8_t* data, size_t size, bool copy);
-
-		MemRefFile(std::shared_ptr<uint8_t> data, size_t size);
-
-		~MemRefFile() override;
+		~SubFile() override;
 
 		bool ok() const override;
 
 		path GetPath() const override;
 
-		Status Open(path filepath, Mode mode) override;
+		Status Open(path filepath, Mode mode) override { return Status::Failed(); };
 
 		Status ReadData(uint8_t* dst, size_t size, size_t* bytesRead) override;
 
@@ -36,21 +31,15 @@ namespace fsal
 
 		Status FlushBuffer() const override;
 
-		const uint8_t* GetDataPointer() const  override;
+		const uint8_t* GetDataPointer() const  override { return nullptr; };
 
-		uint8_t* GetDataPointer()  override;
-
-		bool Resize(size_t newSize);
-
+		uint8_t* GetDataPointer()  override { return nullptr; };
 	private:
-		uint8_t* m_data;
-		std::shared_ptr<uint8_t> m_sharedData;
+		std::shared_ptr<FileInterface> m_file;
+		path m_path;
 
 		size_t m_size;
-		mutable size_t m_offset;
-
-		bool m_hasOwnership;
-
-		size_t m_reserved;
+		size_t m_offset;
+		mutable size_t m_pointer;
 	};
 }

@@ -53,16 +53,12 @@ void fsal::FileSystem::ClearSearchPaths()
 	m_impl->searchPaths.clear();
 }
 
-Status fsal::FileSystem::MountArchive(const File& archive)
+Status fsal::FileSystem::MountArchive(const Archive& archive)
 {
-	if (archive)
+	if (archive.Valid())
 	{
-		Archive archiveReader(ArchiveReaderInterfacePtr((ArchiveReaderInterface*)new ZipReader()));
-		if (archiveReader.OpenArchive(archive))
-		{
-			m_impl->archives.push_back(archiveReader);
-			return true;
-		}
+		m_impl->archives.push_back(archive);
+		return true;
 	}
 	return false;
 }
@@ -323,4 +319,9 @@ Status fsal::FileSystem::CreateDirectory(const Location& location)
 			return Status::Failed();
 		}
 	}
+}
+
+path fsal::FileSystem::GetSystemPath(const Location::Options& options)
+{
+	return Location::GetSytemPath(options);
 }

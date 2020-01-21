@@ -1,6 +1,7 @@
 #pragma once
 #include "ArchiveInterface.h"
 #include "FileListBinarySearch.h"
+#include "Archive.h"
 // #include "FileListHashMap.h"
 
 namespace fsal
@@ -92,7 +93,7 @@ namespace fsal
 	class ZipReader: ArchiveReaderInterface
 	{
 	public:
-		Status OpenArchive(File file) override;
+		Status OpenArchive(File file);
 
 		File OpenFile(const fs::path& filepath) override;
 
@@ -107,6 +108,16 @@ namespace fsal
 		std::mutex fileMutex;
 	};
 
+	inline Archive OpenZipArchive(const File& archive)
+	{
+		auto* zipReader = new ZipReader();
+		if (zipReader->OpenArchive(archive))
+		{
+			Archive archiveReader(ArchiveReaderInterfacePtr((ArchiveReaderInterface*)zipReader));
+			return archiveReader;
+		}
+		return Archive();
+	}
 	class ZipWriter : ArchiveWriterInterface
 	{
 	public:

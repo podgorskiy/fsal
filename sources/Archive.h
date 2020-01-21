@@ -13,8 +13,6 @@ namespace fsal
 
 		bool Valid() const;
 
-		Status OpenArchive(File file);
-
 		File OpenFile(const fs::path& filepath);
 
 		bool Exists(const fs::path& filepath, PathType type = kFile | kDirectory);

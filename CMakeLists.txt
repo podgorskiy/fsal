@@ -21,6 +21,6 @@ target_link_libraries(tests PRIVATE fsal stdc++fs z doctest::doctest)
 
 if(MSVC)
 else()
-    target_compile_options(fsal PRIVATE -lstdc++fs-Wall -Wno-switch)
+    target_compile_options(fsal PRIVATE -lstdc++fs -Wall -Wno-switch)
     target_compile_options(tests PRIVATE -lstdc++fs -Wall -Wno-switch)
 endif()

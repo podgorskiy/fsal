@@ -30,7 +30,9 @@ namespace fsal
 
 		void ClearSearchPaths();
 
-		Status MountArchive(const File& archive);
+		Status MountArchive(const Archive& archive);
+
+		static path GetSystemPath(const Location::Options& options);
 
 	private:
 		Status Find(const Location& location, path& absolutePath, PathType& type, Archive& archive);

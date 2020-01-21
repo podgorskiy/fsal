@@ -38,34 +38,41 @@ Location::Location(Options location) : m_relartiveTo(location), m_type(kFile | k
 {
 }
 
-path Location::GetFullPath() const
+path Location::GetSytemPath(Options relartiveTo)
 {
-	switch (m_relartiveTo)
+	switch (relartiveTo)
 	{
-	case kAbsolute:
-	{
-		return m_filepath;
-	}
-	case kCurrentDirectory:
-	case kSearchPathsAndArchives:
-	{
-		if (m_filepath.is_absolute())
-		{
-			return m_filepath;
-		}
-		return GetCurrentDirectory() / m_filepath;
-	}
 #ifdef WIN32
 	case kTemp:
 		char buff[1024];
 		GetTempPath(1024, buff);
 		return path(buff) / m_filepath;
 #endif
+#ifdef __linux__
+	case kTemp:
+	{
+		#if __cplusplus >= 201402L
+		return fs::temp_directory_path();
+		#else
+		char const* folder = getenv("TMPDIR");
+		fs::temp_directory_path();
+		if (folder == nullptr)
+			folder = "/tmp";
+		return path(folder) / m_filepath;;
+		#endif
+	}
+	case kLog:
+	{
+		char const* folder = getenv("XDG_CACHE_HOME");
+		fs::temp_directory_path();
+		if (folder == nullptr)
+			return path(getenv("HOME")) / "/.cache";
+		return path(folder);
+	}
+#endif
 	}
 
 #ifdef WIN32
-	Options relartiveTo = m_relartiveTo;
-
 	KNOWNFOLDERID id;
 
 #define WINCASE(X) case kWin_##X: id = FOLDERID_##X; break;
@@ -121,8 +128,9 @@ path Location::GetFullPath() const
 		WINCASE(PublicPictures);
 		WINCASE(PublicVideos);
 
+	case kAbsolute:
 	default:
-		return m_filepath;
+		return "";
 	}
 #undef WINCASE
 
@@ -133,9 +141,71 @@ path Location::GetFullPath() const
 		path relativepath(wszPath);
 
 		CoTaskMemFree(wszPath);
-		return relativepath / m_filepath;
+		return relativepath;
 	}
 #endif
+#ifdef __linux__
 
-	return m_filepath;
+#define getOrDefault(X, D)  const char* _d = getenv(#X); path folder; if (_d == nullptr) {folder = D;} else { folder = _d;}
+	switch (relartiveTo)
+	{
+		case kStorageSynced:
+		{
+			getOrDefault(XDG_DATA_HOME, "/.local/share")
+			return getenv("HOME") / folder;
+		}
+		case kStorageLocal:
+		{
+			getOrDefault(XDG_CACHE_HOME, "/.cache")
+			return getenv("HOME") / folder;
+		}
+		case kDesktop:
+		{
+			getOrDefault(XDG_DESKTOP_DIR, "/Desktop")
+			return getenv("HOME") / folder;
+		}
+		case kUserFiles:
+		{
+			getOrDefault(XDG_DOCUMENTS_DIR, "/Documents")
+			return getenv("HOME") / folder;
+		}
+		case kMusic:
+		{
+			getOrDefault(XDG_MUSIC_DIR, "/Music")
+			return getenv("HOME") / folder;
+		}
+		case kPictures:
+		{
+			getOrDefault(XDG_PICTURES_DIR, "/Pictures")
+			return getenv("HOME") / folder;
+		}
+
+
+	case kAbsolute:
+	default:
+		return "";
+	}
+#endif
+}
+
+path Location::GetFullPath() const
+{
+	switch (m_relartiveTo)
+	{
+	case kAbsolute:
+	{
+		return m_filepath;
+	}
+	case kCurrentDirectory:
+	case kSearchPathsAndArchives:
+	{
+		if (m_filepath.is_absolute())
+		{
+			return m_filepath;
+		}
+		return GetCurrentDirectory() / m_filepath;
+	}
+	default:
+		return Location::GetSytemPath(m_relartiveTo) / m_filepath;
+	}
 }

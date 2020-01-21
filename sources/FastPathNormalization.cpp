@@ -72,6 +72,7 @@ inline bool AcceptDotEntry(const char* src, const char*& p)
 	return false;
 }
 
+// https://tools.ietf.org/html/rfc3986#section-4.1
 void fsal::NormalizePath(const char* src, char* dst, size_t len, char*& filename, int& depth)
 {
 	char* dstIt = dst + len - 1;
@@ -80,7 +81,7 @@ void fsal::NormalizePath(const char* src, char* dst, size_t len, char*& filename
 	depth = 0;
 	int skipping = 0;
 
-	char c = '\x0';
+	char c = '\0';
 	bool hasLeadingSlash = false;
 	bool firstEntryWasAccepted = false;
 
@@ -90,7 +91,7 @@ void fsal::NormalizePath(const char* src, char* dst, size_t len, char*& filename
 		{
 			hasLeadingSlash |= true & !firstEntryWasAccepted;
 			++depth;
-			*dstIt = skipping == 0 ? '/' : '\x0';
+			*dstIt = skipping == 0 ? '/' : '\0';
 			--dstIt;
 			while (AcceptSlash(src, srcIt));
 		}
@@ -108,12 +109,12 @@ void fsal::NormalizePath(const char* src, char* dst, size_t len, char*& filename
 		}
 		else if (AcceptChar(src, srcIt, c))
 		{
-			*dstIt = skipping == 0 ? c : '\x0';
+			*dstIt = skipping == 0 ? c : '\0';
 			--dstIt;
 
 			while (AcceptChar(src, srcIt, c))
 			{
-				*dstIt = skipping == 0 ? c : '\x0';
+				*dstIt = skipping == 0 ? c : '\0';
 				--dstIt;
 			}
 			skipping -= skipping > 0;
@@ -135,14 +136,14 @@ void fsal::NormalizePath(const char* src, char* dst, size_t len, char*& filename
 		char* end = dst + len;
 		while (dstIt < end)
 		{
-			if (*dstIt != '\x0')
+			if (*dstIt != '\0')
 			{
 				*dst = *dstIt;
 				++dst;
 			}
 			++dstIt;
 		}
-		*dst = '\x0';
+		*dst = '\0';
 		end = dst;
 	}
 

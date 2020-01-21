@@ -9,8 +9,6 @@ namespace fsal
 	class ArchiveReaderInterface
 	{
 	public:
-		virtual Status OpenArchive(File file) = 0;
-
 		virtual File OpenFile(const fs::path& filepath) = 0;
 
 		virtual void* OpenFile(const fs::path& filepath, std::function<void*(size_t size)> alloc_func) = 0;
