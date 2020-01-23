@@ -4,6 +4,8 @@
 #include "Location.h"
 
 #include <memory>
+#include <mutex>
+
 
 namespace fsal
 {
@@ -15,6 +17,14 @@ namespace fsal
 	class File
 	{
 	public:
+		class LockGuard
+		{
+		public:
+			explicit LockGuard(const FileInterface* file);
+		private:
+			std::lock_guard<std::mutex> guard;
+		};
+
 		enum Origin
 		{
 			Beginning,
@@ -37,17 +47,17 @@ namespace fsal
 		void operator =(const std::string& x);
 
 		Status Read(uint8_t* destanation, size_t size, size_t* readBytes = nullptr) const;
-		
+
 		Status Write(const uint8_t* source, size_t size);
-		
+
 		Status Seek(ptrdiff_t offset, Origin origin = Beginning) const;
 
 		size_t Tell() const;
-		
+
 		size_t GetSize() const;
-		
+
 		path GetPath() const;
-		
+
 		Status Flush() const;
 
 		const uint8_t* GetDataPointer() const;
@@ -66,6 +76,7 @@ namespace fsal
 			return Write(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
 		}
 
+		std::shared_ptr<FileInterface> GetInterface() { return m_file;}
 	private:
 		std::shared_ptr<FileInterface> m_file;
 	};

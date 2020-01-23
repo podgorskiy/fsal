@@ -3,6 +3,7 @@
 #include "ZipArchive.h"
 #include "FileStream.h"
 #include "MemRefFile.h"
+#include "SubFile.h"
 #include <cassert>
 #include <zlib.h>
 
@@ -145,14 +146,7 @@ File ZipReader::OpenFile(const fs::path& filepath)
 		{
 			case ZIP_COMPRESSION::NONE:
 			{
-				auto* memfile = new MemRefFile();
-				memfile->Resize(entry.sizeUncompressed);
-				auto* data = memfile->GetDataPointer();
-				fileMutex.lock();
-				file.Seek(entry.offset, File::Beginning);
-				file.Read((uint8_t*)data, entry.sizeUncompressed);
-				fileMutex.unlock();
-				return memfile;
+				return new SubFile(file.GetInterface(), entry.sizeUncompressed, entry.offset);
 			}
 
 			case ZIP_COMPRESSION::DEFLATE:
@@ -162,10 +156,11 @@ File ZipReader::OpenFile(const fs::path& filepath)
 				auto* uncompressedBuffer = memfile->GetDataPointer();
 				char* compressedBuffer = new char[entry.sizeCompressed];
 
-				fileMutex.lock();
-				file.Seek(entry.offset, File::Beginning);
-				file.Read((uint8_t*)compressedBuffer, entry.sizeCompressed);
-				fileMutex.unlock();
+				{
+					File::LockGuard lock(file.GetInterface().get());
+					file.Seek(entry.offset, File::Beginning);
+					file.Read((uint8_t*)compressedBuffer, entry.sizeCompressed);
+				}
 
 				z_stream stream = {0};
 				int32_t err;
@@ -250,10 +245,9 @@ void* ZipReader::OpenFile(const fs::path& filepath, std::function<void*(size_t s
 			case ZIP_COMPRESSION::NONE:
 			{
 				auto* data = alloc(entry.sizeUncompressed);
-				fileMutex.lock();
+				File::LockGuard lock(file.GetInterface().get());
 				file.Seek(entry.offset, File::Beginning);
 				file.Read((uint8_t*)data, entry.sizeUncompressed);
-				fileMutex.unlock();
 				return data;
 			}
 
@@ -262,10 +256,11 @@ void* ZipReader::OpenFile(const fs::path& filepath, std::function<void*(size_t s
 				auto* uncompressedBuffer = alloc(entry.sizeUncompressed);
 				char* compressedBuffer = new char[entry.sizeCompressed];
 
-				fileMutex.lock();
-				file.Seek(entry.offset, File::Beginning);
-				file.Read((uint8_t*)compressedBuffer, entry.sizeCompressed);
-				fileMutex.unlock();
+				{
+					File::LockGuard lock(file.GetInterface().get());
+					file.Seek(entry.offset, File::Beginning);
+					file.Read((uint8_t*) compressedBuffer, entry.sizeCompressed);
+				}
 
 				z_stream stream = {0};
 				int32_t err;

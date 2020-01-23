@@ -1,5 +1,6 @@
 #include "fsal.h"
 #include "StdFile.h"
+#include "LockableFiles.h"
 #include "FastPathNormalization.h"
 #include "ZipArchive.h"
 
@@ -140,7 +141,7 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 	if (location.m_relartiveTo == Location::kArchives || location.m_relartiveTo == Location::kSearchPathsAndArchives)
 	{
 		std::lock_guard<std::mutex> lock(m_impl->searchPathsMutex);
-		for (std::vector<Archive>::iterator it = m_impl->archives.begin(), end = m_impl->archives.end(); it != end; ++it)
+		for (auto it = m_impl->archives.begin(), end = m_impl->archives.end(); it != end; ++it)
 		{
 			if (it->Exists(location.m_filepath, location.m_type))
 			{
@@ -159,7 +160,7 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 	return Status::Failed();
 }
 
-File fsal::FileSystem::Open(const Location& location, Mode mode)
+File fsal::FileSystem::Open(const Location& location, Mode mode, bool lockable)
 {
 	PathType type;
 	path absolutePath;
@@ -199,7 +200,16 @@ File fsal::FileSystem::Open(const Location& location, Mode mode)
 	}
 	else
 	{
-		StdFile* stdf = new StdFile();
+		FileInterface* stdf = nullptr;
+		if (lockable)
+		{
+			stdf = new LStdFile();
+		}
+		else
+		{
+			stdf = new StdFile();
+		}
+
 		stdf->Open(absolutePath, mode);
 		if (stdf->ok())
 		{

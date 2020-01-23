@@ -21,6 +21,7 @@ namespace fsal
 
 		Status CreateDirectory(const fs::path& path);
 
+		std::vector<std::string> ListDirectory(const fs::path& path);
 	private:
 		ArchiveReaderInterfacePtr m_impl;
 	};

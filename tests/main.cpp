@@ -61,11 +61,13 @@ TEST_CASE("OpenZIP")
 		CHECK(str == "test");
 
 		auto l1 = zip.ListDirectory("./test_folder/folder_inside/../folder_inside/./");
+		printf("\nListDirectory ./test_folder/folder_inside/../folder_inside/./\n");
 		for (const auto& l: l1)
 		{
 			printf("%s\n", l.c_str());
 		}
 		auto l2 = zip.ListDirectory(".");
+		printf("\nListDirectory .\n");
 		for (const auto& l: l2)
 		{
 			printf("%s\n", l.c_str());
@@ -78,21 +80,69 @@ TEST_CASE("MountZIP")
 	fsal::FileSystem fs;
 	fs.PushSearchPath("../");
 	{
-		fsal::ZipReader zip;
-		auto zipfile = fs.Open("test_archive.zip");
+		auto zipfile = fs.Open("test_archive.zip", fsal::kRead, true);
 		CHECK(zipfile);
 
-		fs.MountArchive(OpenZipArchive(zipfile));
+		auto zip = fsal::OpenZipArchive(zipfile);
+		fs.MountArchive(zip);
 
 		fsal::File file = fs.Open("test_folder/folder_inside/test_file.txt", fsal::kRead);
 		CHECK(file);
 		std::string str = file;
 		CHECK(str == "test");
+
+		file = fs.Open("test_folder/folder_inside/123.png", fsal::kRead);
+		std::string content = file;
+		fs.Open("123.png", fsal::Mode::kWrite) = content;
+
+		printf("\nListDirectory test_folder/folder_inside\"\n");
+		auto list = zip.ListDirectory("test_folder/folder_inside");
+		for(auto s: list)
+		{
+			printf("%s\n", s.c_str());
+		}
+	}
+}
+
+TEST_CASE("MountUncompressedZIP")
+{
+	fsal::FileSystem fs;
+	fs.PushSearchPath("../");
+	{
+		auto zipfile = fs.Open("zero_compression.zip", fsal::kRead, true);
+		CHECK(zipfile);
+
+		auto zip = fsal::OpenZipArchive(zipfile);
+		fs.MountArchive(zip);
+
+		fsal::File file = fs.Open("123/2.png", fsal::kRead);
+		size_t size = file.GetSize();
+
+		std::string content;
+		content.resize(size);
+
+		int i = 0;
+		for (i = 0; i < size / 1024; ++i)
+		{
+			file.Read((uint8_t*)&content[0] + i * 1024, 1024, nullptr);
+		}
+
+		file.Read((uint8_t*)&content[0] + i * 1024,  size - i * 1024, nullptr);
+
+		fs.Open("2.png", fsal::Mode::kWrite) = content;
+
+		auto list = zip.ListDirectory(".");
+		printf("\nListDirectory .\n");
+		for(auto s: list)
+		{
+			printf("%s\n", s.c_str());
+		}
 	}
 }
 
 TEST_CASE("MountVpk")
 {
+	printf("\nVPK\n");
 	fsal::FileSystem fs;
 	fs.PushSearchPath("../");
 	{
@@ -102,15 +152,17 @@ TEST_CASE("MountVpk")
 		std::string content = file;
 		fs.Open("map_icon_de_dust2.svg", fsal::Mode::kWrite) = content;
 
-//
-//		auto zipfile = fs.Open("test_archive.zip");
-//		CHECK(zipfile);
-//
-//		fs.MountArchive(zipfile);
-//
-//		fsal::File file = fs.Open("test_folder/folder_inside/test_file.txt", fsal::kRead);
-//		CHECK(file);
-//		std::string str = file;
-//		CHECK(str == "test");
+		auto list = archive.ListDirectory(".");
+		printf("\nListDirectory .\n");
+		for(auto s: list)
+		{
+			printf("%s\n", s.c_str());
+		}
+		list = archive.ListDirectory("models");
+		printf("\nListDirectory models\n");
+		for(auto s: list)
+		{
+			printf("%s\n", s.c_str());
+		}
 	}
 }

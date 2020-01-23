@@ -33,3 +33,8 @@ Status Archive::CreateDirectory(const fs::path& path)
 {
 	return false;// m_impl->CreateDirectory(path);
 }
+
+std::vector<std::string> Archive::ListDirectory(const fs::path& path)
+{
+	return m_impl->ListDirectory(path);
+}

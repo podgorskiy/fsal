@@ -27,6 +27,8 @@ namespace fsal
 		virtual size_t GetSize() const = 0;
 
 		virtual Status FlushBuffer() const = 0;
+
+		virtual std::mutex* GetMutex() const { return nullptr; };
 		
 		virtual const uint8_t* GetDataPointer() const = 0;
 

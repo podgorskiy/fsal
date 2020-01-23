@@ -63,7 +63,7 @@ namespace fsal
 		{
 			FileEntry<UserData> key(path.u8string());
 
-			int index = GetIndex(key);
+			int index = GetIndex(key).first;
 			if (index != -1)
 			{
 				return m_fileList[index].data;
@@ -71,7 +71,7 @@ namespace fsal
 			return UserData();
 		}
 
-		int GetIndex(const FileEntry<UserData>& key, bool getLowerBound = false)
+		std::pair<int, int> GetIndex(const FileEntry<UserData>& key, bool getLowerBound = false)
 		{
 			if (!sorted)
 			{
@@ -95,7 +95,7 @@ namespace fsal
 
 			if (key.depth + 1 >= (int)depthTable.size())
 			{
-				return -1;
+				return std::make_pair(-1, -1);
 			}
 
 			size_t right = depthTable[key.depth + 1];
@@ -104,6 +104,8 @@ namespace fsal
 
 			// Searching for lower bound
 			size_t count = right - left;
+			if (count == 0)
+				return std::make_pair(left, right);
 
 			const char* key_cstr = key.path.c_str();
 			int start_compare_from = 0;
@@ -123,7 +125,7 @@ namespace fsal
 				if (res == 0)
 				{
 					//printf("%s\n", file_list[it].path.c_str());
-					return (int)it;
+					return std::make_pair(it, it);
 				}
 
 				if (res < 0)
@@ -142,15 +144,15 @@ namespace fsal
 
 			if (getLowerBound)
 			{
-				return (int)left;
+				return std::make_pair(left, right);
 			}
 
-			return -1;
+			return std::make_pair(-1, -1);
 		}
 
 		bool Exists(const FileEntry<UserData>& key)
 		{
-			auto index = GetIndex(key);
+			auto index = GetIndex(key).first;
 			return index != -1;
 		}
 
@@ -165,9 +167,9 @@ namespace fsal
 		{
 			std::vector<std::string> result;
 
-			int index = GetIndex((path / "a").u8string(), true);
-
-			int lastIndex = m_fileList[index].depth + 1 < (int)depthTable.size() ? depthTable[m_fileList[index].depth + 1] : (int)m_fileList.size();
+			auto _index = GetIndex((path / " ").u8string(), true);
+			int index = _index.first;
+			int lastIndex = _index.second;
 
 			std::string u8path = NormalizePath(path.u8string());
 

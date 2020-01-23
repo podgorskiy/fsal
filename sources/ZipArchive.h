@@ -105,7 +105,6 @@ namespace fsal
 	private:
 		FileList<ZipEntryData> filelist;
 		File file;
-		std::mutex fileMutex;
 	};
 
 	inline Archive OpenZipArchive(const File& archive)

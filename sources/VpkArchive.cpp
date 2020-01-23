@@ -3,6 +3,7 @@
 #include "VpkArchive.h"
 #include "FileStream.h"
 #include "MemRefFile.h"
+#include "SubFile.h"
 #include <cassert>
 #include <zlib.h>
 
@@ -10,7 +11,7 @@
 using namespace fsal;
 
 
-static std::string read_string(fsal::File file)
+static std::string read_string(const fsal::File& file)
 {
 	std::string buf;
 
@@ -128,7 +129,7 @@ File VPKReader::OpenPak(int index)
 	char buff2[32];
 	sprintf(buff2, "%03d", index);
 	sprintf(buff, m_formatString.c_str(), buff2);
-	File file = m_fs.Open(m_directory / buff);
+	File file = m_fs.Open(m_directory / buff, Mode::kRead, true);
 	m_pak_files[index] = file;
 	return file;
 }
@@ -151,7 +152,7 @@ File VPKReader::OpenFile(const fs::path& filepath)
 
 	if (entry.PreloadBytes != 0 || entry.EntryOffset != 0)
 	{
-		//if (entry.PreloadBytes != 0 || entry.PreloadBytes + entry.EntryLength < 1024 * 1024)
+		if (entry.PreloadBytes != 0 || entry.PreloadBytes + entry.EntryLength < 1024 * 16)
 		{
 			auto* memfile = new MemRefFile();
 			memfile->Resize(entry.PreloadBytes + entry.EntryLength);
@@ -167,10 +168,11 @@ File VPKReader::OpenFile(const fs::path& filepath)
 			}
 			return memfile;
 		}
-		//else
-		//{
-
-		//}
+		else
+		{
+			auto* subfile = new SubFile(file.GetInterface(), (size_t)entry.EntryLength, (size_t)entry.EntryOffset);
+			return subfile;
+		}
 	}
 
 	return File();

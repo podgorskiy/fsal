@@ -47,7 +47,7 @@ namespace fsal
 		kAppend = 0x2,
 		kReadUpdate = 0x3,
 		kWriteUpdate = 0x4,
-		kAppendUpdate = 0x5
+		kAppendUpdate = 0x5,
 	};
 
 	enum PathType : unsigned char

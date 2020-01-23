@@ -1,5 +1,6 @@
 #include "fsal.h"
 #include "FileInterface.h"
+#include "LockableFiles.h"
 
 using namespace fsal;
 
@@ -87,4 +88,8 @@ const uint8_t* File::GetDataPointer() const
 uint8_t* File::GetDataPointer()
 {
 	return m_file->GetDataPointer();
+}
+
+File::LockGuard::LockGuard(const FileInterface* file): guard(*file->GetMutex())
+{
 }

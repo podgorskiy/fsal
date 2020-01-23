@@ -91,7 +91,7 @@ namespace fsal
 	inline Archive OpenVpkArchive(FileSystem fs, Location directory, const std::string& formatString = "pak01_%s.vpk")
 	{
 		auto* reader = new VPKReader();
-		if (reader->OpenArchive(fs, directory, formatString))
+		if (reader->OpenArchive(std::move(fs), std::move(directory), formatString))
 		{
 			Archive archiveReader(ArchiveReaderInterfacePtr((ArchiveReaderInterface*)reader));
 			return archiveReader;

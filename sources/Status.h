@@ -5,11 +5,11 @@ namespace fsal
 {
 	struct Status
 	{
-		enum State
+		enum State : uint8_t
 		{
-			kOK,
-			kEOF,
-			kFailed
+			kOK = 0,
+			kEOF = 1 << 0,
+			kFailed = 1 << 1
 		};
 
 		bool ok() const
@@ -51,4 +51,26 @@ namespace fsal
 			return Status(kEOF);
 		}
 	};
+
+	inline Status::State operator | (Status::State a, Status::State b)
+	{
+		return (Status::State)(uint8_t(a) | uint8_t(b));
+	}
+
+	inline Status::State operator |= (Status::State& a, Status::State b)
+	{
+		a = a | b;
+		return a;
+	}
+
+	inline Status::State operator & (Status::State a, Status::State b)
+	{
+		return (Status::State)(uint8_t(a) & uint8_t(b));
+	}
+
+	inline Status::State operator &= (Status::State& a, Status::State b)
+	{
+		a = a & b;
+		return a;
+	}
 }

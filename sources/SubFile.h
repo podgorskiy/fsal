@@ -3,13 +3,14 @@
 #include "FileInterface.h"
 
 #include <cstdio>
+#include <mutex>
 
 namespace fsal
 {
 	class SubFile : public FileInterface
 	{
 	public:
-		SubFile();
+		SubFile(std::shared_ptr<FileInterface> file, size_t size, size_t offset);
 
 		~SubFile() override;
 

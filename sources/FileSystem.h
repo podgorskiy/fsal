@@ -14,7 +14,7 @@ namespace fsal
 	public:
 		FileSystem();
 
-		File Open(const Location& location, Mode mode = kRead);
+		File Open(const Location& location, Mode mode = kRead, bool lockable = false);
 
 		bool Exists(const Location& location);
 
