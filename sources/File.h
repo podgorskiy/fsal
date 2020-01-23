@@ -12,8 +12,6 @@ namespace fsal
 	class FileInterface;
 	class File;
 
-	inline void null_deleter(FileInterface*) {}
-
 	class File
 	{
 	public:

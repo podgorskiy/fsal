@@ -13,6 +13,7 @@ namespace fsal
 			CENTRAL_DIRECTORY_FILE_HEADER = 0x02014b50,
 			END_OF_CENTRAL_DIRECTORY_SIGN = 0x06054b50,
 			LOCAL_HEADER = 0x04034b50,
+			VERSION = 46,
 		};
 	}
 
@@ -120,14 +121,20 @@ namespace fsal
 	class ZipWriter : ArchiveWriterInterface
 	{
 	public:
-		virtual Status CreateArchive(File file) override;
+		ZipWriter(const File& file);
+		~ZipWriter();
 
-		virtual Status AddFile(const fs::path& path, File file, int compression) override;
+		Status AddFile(const fs::path& path, File file, int compression = ZIP_COMPRESSION::DEFLATE) override;
 
-		virtual Status CreateDirectory(const fs::path& path) override;
+		Status CreateDirectory(const fs::path& path) override;
 
 	private:
 		FileList<ZipEntryData> filelist;
-		File file;
+		File m_file;
+
+		int32_t m_currOffset;
+		int32_t m_sizeOfCD;
+
+		std::vector<std::pair<CentralDirectoryHeader, std::string> > m_headers;
 	};
 }

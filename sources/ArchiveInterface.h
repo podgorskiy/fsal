@@ -23,8 +23,6 @@ namespace fsal
 	class ArchiveWriterInterface
 	{
 	public:
-		virtual Status CreateArchive(File file) = 0;
-
 		virtual Status AddFile(const fs::path& path, File file, int compression) = 0;
 
 		virtual Status CreateDirectory(const fs::path& path) = 0;

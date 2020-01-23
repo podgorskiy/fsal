@@ -75,6 +75,22 @@ TEST_CASE("OpenZIP")
 	}
 }
 
+TEST_CASE("CreateZIP")
+{
+	fsal::FileSystem fs;
+	fs.PushSearchPath("../");
+	{
+		auto zipfile = fs.Open("out_archive.zip", fsal::kWrite);
+		fsal::ZipWriter zip(zipfile);
+		CHECK(zipfile);
+
+		zip.AddFile("CMakeLists.txt", fs.Open("CMakeLists.txt"));
+		zip.CreateDirectory("tests");
+		zip.AddFile("tests/main.cpp", fs.Open("tests/main.cpp"));
+		zip.CreateDirectory("tests2");
+	}
+}
+
 TEST_CASE("MountZIP")
 {
 	fsal::FileSystem fs;

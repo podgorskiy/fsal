@@ -87,8 +87,8 @@ Status ZipReader::OpenArchive(File file_)
 
 	std::string filename;
 
-	CentralDirectoryHeader header;
-	LocalFileHeader fileHeader;
+	CentralDirectoryHeader header = {0};
+	LocalFileHeader fileHeader = {0};
 
 	{
 		bfio::SizeCalculator s;
@@ -101,7 +101,7 @@ Status ZipReader::OpenArchive(File file_)
 		assert(s.GetSize() == sizeof(fileHeader));
 	}
 
-	for (int i = 0; (int32_t)file.Tell() - ecdr.offsetOfStartOfCentralDirectory < ecdr.sizeOfTheCentralDirectory;++i)
+	for (int i = 0; (int32_t)file.Tell() - ecdr.offsetOfStartOfCentralDirectory < ecdr.sizeOfTheCentralDirectory; ++i)
 	{
 		file.Read(header);
 
@@ -222,6 +222,7 @@ File ZipReader::OpenFile(const fs::path& filepath)
 //					delete[] compressedBuffer;
 //					return memfile;
 //				}
+
 //			}
 
 			default:
@@ -322,17 +323,222 @@ std::vector<std::string> ZipReader::ListDirectory(const fs::path& path)
 	return filelist.ListDirectory(path);
 }
 
-Status ZipWriter::CreateArchive(File file)
+ZipWriter::ZipWriter(const File& file): m_file(file), m_currOffset(0), m_sizeOfCD(0)
 {
-	return false;
+	file.Seek(0);
 }
+
+static uint32_t* generate_table()
+{
+	static uint32_t table[256];
+	uint32_t polynomial = 0xEDB88320;
+	for (uint32_t i = 0; i < 256; i++)
+	{
+		uint32_t c = i;
+		for (size_t j = 0; j < 8; j++)
+		{
+			if (c & 1U)
+			{
+				c = polynomial ^ (c >> 1U);
+			}
+			else
+			{
+				c >>= 1U;
+			}
+		}
+		table[i] = c;
+	}
+	return table;
+}
+
+static uint32_t update(uint32_t initial, const uint8_t* buf, size_t len)
+{
+	static uint32_t* table = generate_table();
+	uint32_t c = initial ^ 0xFFFFFFFFU;
+	for (size_t i = 0; i < len; ++i)
+	{
+		c = table[(c ^ (uint32_t)buf[i]) & 0xFFU] ^ (c >> 8U);
+	}
+	return c ^ 0xFFFFFFFF;
+}
+
 
 Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 {
-	return false;
+	int level = 9;
+	bool encrypt = false;
+
+	std::shared_ptr<uint8_t> dataPointer = std::shared_ptr<uint8_t>(file.GetDataPointer(), null_deleter<uint8_t>);
+
+	int uncompressedSize = static_cast<int>(file.GetSize());
+	int compressedSize = uncompressedSize;
+
+	if (!dataPointer)
+	{
+		dataPointer.reset(new uint8_t[uncompressedSize]);
+		file.Read(dataPointer.get(), uncompressedSize);
+	}
+
+	std::shared_ptr<uint8_t> dataPointerCompressed;
+
+//	if (compression == ZIP_COMPRESSION::LZ4)
+//	{
+//		int bound = LZ4_compressBound(uncompressedSize);
+//
+//		compressed = new char[bound];
+//		if (uncompressedSize > 0)
+//		{
+//			compressedSize = LZ4_compressHC2((char*)buffer.data(), compressed, uncompressedSize, level);
+//		}
+//	} else
+	if (compression == ZIP_COMPRESSION::DEFLATE)
+	{
+		z_stream stream;
+
+		stream.next_in = (Bytef*)dataPointer.get();
+		stream.avail_in = (uInt)uncompressedSize;
+		stream.zalloc = (alloc_func)nullptr;
+		stream.zfree = (free_func)nullptr;
+
+		int err = deflateInit2(&stream, Z_BEST_COMPRESSION, Z_DEFLATED, -MAX_WBITS, level, Z_DEFAULT_STRATEGY);
+		if (err != Z_OK)
+		{
+			return Status::Failed();
+		}
+
+		int bound = deflateBound(&stream, uncompressedSize);
+		dataPointerCompressed.reset(new uint8_t[bound]);
+		memset(dataPointerCompressed.get(), 0, bound);
+		stream.next_out = (Bytef*)dataPointerCompressed.get();
+		stream.avail_out = bound;
+		err = deflate(&stream, Z_FINISH);
+		if (err != Z_STREAM_END)
+		{
+			return Status::Failed();
+		}
+		err = deflateEnd(&stream);
+		if (err != Z_OK)
+		{
+			return Status::Failed();
+		}
+		compressedSize = stream.total_out;
+	}
+
+	CentralDirectoryHeader header = {0};
+	LocalFileHeader fileHeader = {0};
+
+	fileHeader.localFileHeaderSignature = ZIP_SIGNATURES::LOCAL_HEADER;
+	fileHeader.versionNeededToExtract = ZIP_SIGNATURES::VERSION;
+	fileHeader.generalPurposeBitFlag = encrypt ? 1 : 0;
+	fileHeader.compressionMethod = static_cast<uint16_t>(compression);
+	fileHeader.lastModFileDate = 0;
+	fileHeader.lastModFileTime = 0;
+	fileHeader.dataDescriptor.CRC32 = update(0, dataPointer.get(), uncompressedSize);
+	fileHeader.dataDescriptor.compressedSize = compressedSize;
+	fileHeader.dataDescriptor.uncompressedSize = uncompressedSize;
+	fileHeader.fileNameLength = path.string().size();
+	fileHeader.extraFieldLength = 0;
+
+	header.centralFileHeaderSignature = ZIP_SIGNATURES::CENTRAL_DIRECTORY_FILE_HEADER;
+
+	header.versionMadeBy = ZIP_SIGNATURES::VERSION;
+	header.versionNeededToExtract = ZIP_SIGNATURES::VERSION;
+	header.generalPurposBbitFlag = encrypt ? 1 : 0;
+	header.compressionMethod = static_cast<uint16_t>(compression);
+	header.lastModFileDate = 0;
+	header.lastModFileTime = 0;
+	header.dataDescriptor = fileHeader.dataDescriptor;
+	header.fileNameLength = fileHeader.fileNameLength;
+	header.extraFieldLength = 0;
+	header.fileCommentLength = 0;
+	header.diskNumberStart = 0;
+	header.internalFileAttributes = 0;
+	header.externalFileAttributes = 0;
+	header.relativeOffsetOfLocalHeader = m_currOffset;
+
+	std::string filepathStr = path.string();
+	m_headers.emplace_back(header, filepathStr);
+
+	m_sizeOfCD += (int32_t)(sizeof(CentralDirectoryHeader) + filepathStr.size());
+	m_currOffset += (int32_t)(sizeof(LocalFileHeader) + filepathStr.size() + compressedSize);
+
+	m_file.Write(fileHeader);
+	m_file.Write((uint8_t*)filepathStr.c_str(), filepathStr.size());
+
+	uint8_t* data_ptr_to_write = nullptr;
+	size_t data_size_to_write = 0;
+
+	if (compression == ZIP_COMPRESSION::NONE)
+	{
+		data_ptr_to_write = dataPointer.get();
+		data_size_to_write = uncompressedSize;
+	}
+	else
+	{
+		data_ptr_to_write = dataPointerCompressed.get();
+		data_size_to_write = compressedSize;
+	}
+	m_file.Write(data_ptr_to_write, data_size_to_write);
+
+	return Status::Succeeded();
 }
 
 Status ZipWriter::CreateDirectory(const fs::path& path)
 {
-	return false;
+	CentralDirectoryHeader header = {0};
+	LocalFileHeader fileHeader = {0};
+
+	std::string dir_path = path;
+
+	if (dir_path.size() == 0)
+		return Status::Failed();
+	if (dir_path[dir_path.size()-1] == '\\')
+		dir_path[dir_path.size()-1] = '/';
+	dir_path = NormalizePath(dir_path);
+	if (dir_path[dir_path.size()-1] != '/')
+		dir_path += '/';
+
+	fileHeader.localFileHeaderSignature = ZIP_SIGNATURES::LOCAL_HEADER;
+	fileHeader.versionNeededToExtract = ZIP_SIGNATURES::VERSION;
+	fileHeader.fileNameLength = dir_path.size();
+
+	header.centralFileHeaderSignature = ZIP_SIGNATURES::CENTRAL_DIRECTORY_FILE_HEADER;
+	header.versionMadeBy = ZIP_SIGNATURES::VERSION;
+	header.versionNeededToExtract = ZIP_SIGNATURES::VERSION;
+	header.dataDescriptor = fileHeader.dataDescriptor;
+	header.fileNameLength = fileHeader.fileNameLength;
+	header.relativeOffsetOfLocalHeader = m_currOffset;
+
+	m_headers.emplace_back(header, dir_path);
+
+	m_sizeOfCD += (int32_t)(sizeof(CentralDirectoryHeader) + dir_path.size());
+	m_currOffset += (int32_t)(sizeof(LocalFileHeader) + dir_path.size());
+
+	m_file.Write(fileHeader);
+	m_file.Write((uint8_t*)dir_path.c_str(), dir_path.size());
+	return Status::Succeeded();
+}
+
+ZipWriter::~ZipWriter()
+{
+	for (auto& pair: m_headers)
+	{
+		m_file.Write(pair.first);
+		m_file.Write((uint8_t*)pair.second.c_str(), pair.second.size());
+	}
+
+	EndOfCentralDirectoryRecord ecdr = {0};
+
+	ecdr.endOfCentralDirSignature = ZIP_SIGNATURES::END_OF_CENTRAL_DIRECTORY_SIGN;
+	ecdr.numberOfThisDisk = 0;
+	ecdr.numberOfTheDiskWithTheStartOfTheCentralDirectory = 0;
+	ecdr.totalNumberOfEntriesInTheCentralDirectory = (int16_t)(m_headers.size());
+	ecdr.totalNumberOfEntriesInTheCentralDirectoryOnThisDisk = (int16_t)(m_headers.size());
+	ecdr.sizeOfTheCentralDirectory = m_sizeOfCD;
+	ecdr.offsetOfStartOfCentralDirectory = m_currOffset;
+	ecdr.ZIPFileCommentLength = 0;
+
+	FileStream stream(m_file);
+
+	stream << ecdr;
 }

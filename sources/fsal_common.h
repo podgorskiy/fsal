@@ -72,8 +72,6 @@ namespace fsal
 		return (LinkType)((unsigned char)a | (unsigned char)b);
 	}
 
-	struct ListItem
-	{
-
-	};
+	template<typename T>
+	inline void null_deleter(T*) {}
 }
