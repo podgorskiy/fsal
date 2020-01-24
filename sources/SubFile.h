@@ -32,6 +32,8 @@ namespace fsal
 
 		Status FlushBuffer() const override;
 
+		uint64_t GetLastWriteTime() const override { return m_file->GetLastWriteTime(); }
+
 		const uint8_t* GetDataPointer() const  override { return nullptr; };
 
 		uint8_t* GetDataPointer()  override { return nullptr; };

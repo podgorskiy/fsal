@@ -128,6 +128,11 @@ Status StdFile::FlushBuffer() const
 	return std::fflush(m_file) ? Status::Succeeded() : Status::Failed();
 }
 
+uint64_t StdFile::GetLastWriteTime() const
+{
+	return fs::file_time_type::clock::to_time_t(fs::last_write_time(m_path));
+}
+
 const uint8_t* StdFile::GetDataPointer() const
 {
 	return nullptr;

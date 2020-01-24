@@ -1,0 +1,19 @@
+cmake_minimum_required(VERSION 2.8)
+include(ExternalProject)
+find_package(Git REQUIRED)
+
+ExternalProject_Add(
+		lz4 PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+		GIT_REPOSITORY https://github.com/lz4/lz4.git
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND ""
+		INSTALL_COMMAND ""
+)
+
+ExternalProject_Add(
+	zlib PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+	GIT_REPOSITORY https://github.com/madler/zlib.git
+	CONFIGURE_COMMAND ""
+	BUILD_COMMAND ""
+	INSTALL_COMMAND ""
+)

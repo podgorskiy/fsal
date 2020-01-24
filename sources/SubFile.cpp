@@ -53,6 +53,7 @@ Status SubFile::WriteData(const uint8_t* src, size_t size)
 Status SubFile::SetPosition(size_t position) const
 {
 	m_pointer = std::min(position, m_size);
+	return Status::Succeeded();
 }
 
 size_t SubFile::GetPosition() const

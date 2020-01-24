@@ -28,6 +28,8 @@ namespace fsal
 
 		virtual Status FlushBuffer() const = 0;
 
+		virtual uint64_t GetLastWriteTime() const = 0;
+
 		virtual std::mutex* GetMutex() const { return nullptr; };
 		
 		virtual const uint8_t* GetDataPointer() const = 0;

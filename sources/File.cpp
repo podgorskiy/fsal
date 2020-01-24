@@ -80,6 +80,11 @@ Status File::Flush() const
 	return m_file->FlushBuffer();
 }
 
+uint64_t File::GetLastWriteTime() const
+{
+	return m_file->GetLastWriteTime();
+}
+
 const uint8_t* File::GetDataPointer() const
 {
 	return m_file->GetDataPointer();

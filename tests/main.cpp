@@ -91,6 +91,34 @@ TEST_CASE("CreateZIP")
 	}
 }
 
+TEST_CASE("CreateZIP_LZ4")
+{
+	fsal::FileSystem fs;
+	fs.PushSearchPath("../");
+	std::string original = fs.Open("CMakeLists.txt");
+	{
+		auto zipfile = fs.Open("out_archive_lz4.zip", fsal::kWrite);
+		fsal::ZipWriter zip(zipfile);
+		CHECK(zipfile);
+
+		zip.AddFile("CMakeLists.txt", fs.Open("CMakeLists.txt"), fsal::ZIP_COMPRESSION::LZ4);
+		zip.CreateDirectory("tests");
+		zip.AddFile("tests/main.cpp", fs.Open("tests/main.cpp"), fsal::ZIP_COMPRESSION::LZ4);
+		zip.CreateDirectory("tests2");
+	}
+	{
+		auto zipfile = fs.Open("out_archive_lz4.zip");
+		fsal::ZipReader zip;
+		zip.OpenArchive(zipfile);
+		CHECK(zipfile);
+
+		auto file = zip.OpenFile("CMakeLists.txt");
+		std::string decompressed = file;
+
+		CHECK(original == decompressed);
+	}
+}
+
 TEST_CASE("MountZIP")
 {
 	fsal::FileSystem fs;
@@ -138,7 +166,7 @@ TEST_CASE("MountUncompressedZIP")
 		content.resize(size);
 
 		int i = 0;
-		for (i = 0; i < size / 1024; ++i)
+		for (i = 0; i < int(size / 1024); ++i)
 		{
 			file.Read((uint8_t*)&content[0] + i * 1024, 1024, nullptr);
 		}

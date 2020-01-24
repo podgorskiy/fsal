@@ -58,6 +58,8 @@ namespace fsal
 
 		Status Flush() const;
 
+		uint64_t GetLastWriteTime() const;
+
 		const uint8_t* GetDataPointer() const;
 
 		uint8_t* GetDataPointer();

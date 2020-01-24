@@ -5,6 +5,8 @@
 #include "MemRefFile.h"
 #include "SubFile.h"
 #include <cassert>
+#include <lz4.h>
+#include <lz4hc.h>
 #include <zlib.h>
 
 
@@ -67,7 +69,7 @@ namespace bfio
 
 Status ZipReader::OpenArchive(File file_)
 {
-	file = file_;
+	file = std::move(file_);
 
 	FileStream stream(file);
 
@@ -162,7 +164,7 @@ File ZipReader::OpenFile(const fs::path& filepath)
 					file.Read((uint8_t*)compressedBuffer, entry.sizeCompressed);
 				}
 
-				z_stream stream = {0};
+				z_stream stream = {nullptr};
 				int32_t err;
 				stream.next_in = (Bytef*)compressedBuffer;
 				stream.avail_in = (uInt)entry.sizeCompressed;
@@ -195,35 +197,35 @@ File ZipReader::OpenFile(const fs::path& filepath)
 					return memfile;
 				}
 			}
-//
-//			case ZIP_ENUMS::LZ4:
-//			{
-//				auto* memfile = new MemRefFile();
-//				memfile->Resize(entry.sizeUncompressed);
-//				auto* uncompressedBuffer = memfile->GetDataPointer();
-//
-//				char* compressedBuffer = new char[entry.sizeCompressed];
-//
-//				fileMutex.lock();
-//				file.Seek(entry.offset, File::Beginning);
-//				file.Read((uint8_t*)compressedBuffer, entry.sizeUncompressed);
-//				fileMutex.unlock();
-//
-//				int b = LZ4_decompress_fast(compressedBuffer, uncompressedBuffer, entry.sizeUncompressed);
-//
-//				if (b <= 0)
-//				{
-//					delete[] compressedBuffer;
-//					delete memfile;
-//					return File();
-//				}
-//				else
-//				{
-//					delete[] compressedBuffer;
-//					return memfile;
-//				}
 
-//			}
+			case ZIP_COMPRESSION::LZ4:
+			{
+				auto* memfile = new MemRefFile();
+				memfile->Resize(entry.sizeUncompressed);
+				auto* uncompressedBuffer = memfile->GetDataPointer();
+
+				char* compressedBuffer = new char[entry.sizeCompressed];
+
+				{
+					File::LockGuard lock(file.GetInterface().get());
+					file.Seek(entry.offset, File::Beginning);
+					file.Read((uint8_t*) compressedBuffer, entry.sizeCompressed);
+				}
+
+				int b = LZ4_decompress_fast((const char*)compressedBuffer, (char*)uncompressedBuffer, entry.sizeUncompressed);
+
+				if (b <= 0)
+				{
+					delete[] compressedBuffer;
+					delete memfile;
+					return File();
+				}
+				else
+				{
+					delete[] compressedBuffer;
+					return memfile;
+				}
+			}
 
 			default:
 			{
@@ -328,41 +330,6 @@ ZipWriter::ZipWriter(const File& file): m_file(file), m_currOffset(0), m_sizeOfC
 	file.Seek(0);
 }
 
-static uint32_t* generate_table()
-{
-	static uint32_t table[256];
-	uint32_t polynomial = 0xEDB88320;
-	for (uint32_t i = 0; i < 256; i++)
-	{
-		uint32_t c = i;
-		for (size_t j = 0; j < 8; j++)
-		{
-			if (c & 1U)
-			{
-				c = polynomial ^ (c >> 1U);
-			}
-			else
-			{
-				c >>= 1U;
-			}
-		}
-		table[i] = c;
-	}
-	return table;
-}
-
-static uint32_t update(uint32_t initial, const uint8_t* buf, size_t len)
-{
-	static uint32_t* table = generate_table();
-	uint32_t c = initial ^ 0xFFFFFFFFU;
-	for (size_t i = 0; i < len; ++i)
-	{
-		c = table[(c ^ (uint32_t)buf[i]) & 0xFFU] ^ (c >> 8U);
-	}
-	return c ^ 0xFFFFFFFF;
-}
-
-
 Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 {
 	int level = 9;
@@ -381,17 +348,18 @@ Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 
 	std::shared_ptr<uint8_t> dataPointerCompressed;
 
-//	if (compression == ZIP_COMPRESSION::LZ4)
-//	{
-//		int bound = LZ4_compressBound(uncompressedSize);
-//
-//		compressed = new char[bound];
-//		if (uncompressedSize > 0)
-//		{
-//			compressedSize = LZ4_compressHC2((char*)buffer.data(), compressed, uncompressedSize, level);
-//		}
-//	} else
-	if (compression == ZIP_COMPRESSION::DEFLATE)
+	if (compression == ZIP_COMPRESSION::LZ4)
+	{
+		int bound = LZ4_compressBound(uncompressedSize);
+
+		dataPointerCompressed.reset(new uint8_t[bound]);
+		memset(dataPointerCompressed.get(), 0, bound);
+		if (uncompressedSize > 0)
+		{
+			compressedSize = LZ4_compressHC2((const char*)dataPointer.get(), (char*)dataPointerCompressed.get(), uncompressedSize, level);
+		}
+	}
+	else if (compression == ZIP_COMPRESSION::DEFLATE)
 	{
 		z_stream stream;
 
@@ -431,9 +399,21 @@ Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 	fileHeader.versionNeededToExtract = ZIP_SIGNATURES::VERSION;
 	fileHeader.generalPurposeBitFlag = encrypt ? 1 : 0;
 	fileHeader.compressionMethod = static_cast<uint16_t>(compression);
-	fileHeader.lastModFileDate = 0;
-	fileHeader.lastModFileTime = 0;
-	fileHeader.dataDescriptor.CRC32 = update(0, dataPointer.get(), uncompressedSize);
+
+	uint64_t ctime = file.GetLastWriteTime();
+	tm* tm_time = gmtime((time_t*)&ctime);
+
+	fileHeader.lastModFileDate = 0U
+			| (((uint32_t)tm_time->tm_mday & 0b00011111U) << 0U)
+			| (((uint32_t)(tm_time->tm_mon + 1) & 0b00001111U) << 5U)
+			| (((uint32_t)(tm_time->tm_year - 80) & 0b01111111U) << 9U);
+
+	fileHeader.lastModFileTime = 0U
+			| (((uint32_t)(tm_time->tm_sec / 2) & 0b00011111U) << 0U)
+			| (((uint32_t)tm_time->tm_min & 0b00111111U) << 5U)
+			| (((uint32_t)(tm_time->tm_hour - 80) & 0b00011111U) << 11U);
+
+	fileHeader.dataDescriptor.CRC32 = crc32(0, dataPointer.get(), uncompressedSize);
 	fileHeader.dataDescriptor.compressedSize = compressedSize;
 	fileHeader.dataDescriptor.uncompressedSize = uncompressedSize;
 	fileHeader.fileNameLength = path.string().size();
@@ -445,8 +425,8 @@ Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 	header.versionNeededToExtract = ZIP_SIGNATURES::VERSION;
 	header.generalPurposBbitFlag = encrypt ? 1 : 0;
 	header.compressionMethod = static_cast<uint16_t>(compression);
-	header.lastModFileDate = 0;
-	header.lastModFileTime = 0;
+	header.lastModFileDate = fileHeader.lastModFileDate;
+	header.lastModFileTime = fileHeader.lastModFileTime;
 	header.dataDescriptor = fileHeader.dataDescriptor;
 	header.fileNameLength = fileHeader.fileNameLength;
 	header.extraFieldLength = 0;
