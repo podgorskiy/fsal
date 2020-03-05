@@ -468,7 +468,7 @@ Status ZipWriter::CreateDirectory(const fs::path& path)
 	CentralDirectoryHeader header = {0};
 	LocalFileHeader fileHeader = {0};
 
-	std::string dir_path = path;
+	std::string dir_path = path.string();
 
 	if (dir_path.size() == 0)
 		return Status::Failed();

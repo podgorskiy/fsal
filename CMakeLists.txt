@@ -12,9 +12,8 @@ else ()
     set (CMAKE_CXX_STANDARD 14)
 endif ()
 
-find_package(doctest REQUIRED)
-
 if (FSAL_EXAMPLES OR FSAL_TESTS)
+	find_package(doctest REQUIRED)
 	configure_file(thirdparty/CMakeLists.txt.in thirdparty/CMakeLists.txt)
 	execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty")
