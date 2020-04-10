@@ -8,6 +8,8 @@ set (CMAKE_CXX_STANDARD 14)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     message("Clang detected. Asking for cxx 17. Reason: #include <experimental/filesystem> seems to not work on cxx 14 on Clang")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.15)#"$ENV{MACOSX_DEPLOYMENT_TARGET}")
+    message("CMAKE_OSX_DEPLOYMENT_TARGET is '${CMAKE_OSX_DEPLOYMENT_TARGET}' ")
     set (CMAKE_CXX_STANDARD 17)
 endif()
 
