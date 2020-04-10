@@ -63,11 +63,7 @@ Status StdFile::Open(path filepath, Mode mode)
 #else
 	m_file = std::fopen(m_path.string().c_str(), modeStr);
 #endif
-	if (m_file == nullptr)
-	{
-		return Status::Failed();
-	}
-	return Status::Succeeded();
+	return m_file != nullptr;
 }
 
 Status StdFile::ReadData(uint8_t* dst, size_t size, size_t* bytesRead)
@@ -77,23 +73,23 @@ Status StdFile::ReadData(uint8_t* dst, size_t size, size_t* bytesRead)
 	{
 		*bytesRead = retSize;
 	}
-	return retSize == size ? Status::Succeeded() : (std::feof(m_file) ? Status::EndOfFile() : Status::Failed());
+	return retSize == size ? true : (std::feof(m_file) ? Status::kEOF: false);
 }
 
 Status StdFile::WriteData(const uint8_t* src, size_t size)
 {
 	size_t writeSize = std::fwrite(src, 1, size, m_file);
-	return writeSize == size ? Status::Succeeded() : Status::Failed();
+	return writeSize == size;
 }
 
 Status StdFile::SetPosition(size_t position) const
 {
 #ifdef _WIN32
-	return _fseeki64(m_file, position, SEEK_SET) == 0 ? Status::Succeeded() : Status::Failed();
+	return _fseeki64(m_file, position, SEEK_SET) == 0;
 #elif __linux
-	return fseeko64(m_file, position, SEEK_SET) == 0 ? Status::Succeeded() : Status::Failed();
+	return fseeko64(m_file, position, SEEK_SET) == 0;
 #else
-	return std::fseek(m_file, position, SEEK_SET) == 0 ? Status::Succeeded() : Status::Failed();
+	return std::fseek(m_file, position, SEEK_SET) == 0;
 #endif
 }
 
@@ -125,7 +121,7 @@ size_t StdFile::GetSize() const
 
 Status StdFile::FlushBuffer() const
 {
-	return std::fflush(m_file) ? Status::Succeeded() : Status::Failed();
+	return std::fflush(m_file) == 0;
 }
 
 uint64_t StdFile::GetLastWriteTime() const

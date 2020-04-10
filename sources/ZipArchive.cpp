@@ -371,7 +371,7 @@ Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 		int err = deflateInit2(&stream, Z_BEST_COMPRESSION, Z_DEFLATED, -MAX_WBITS, level, Z_DEFAULT_STRATEGY);
 		if (err != Z_OK)
 		{
-			return Status::Failed();
+			return false;
 		}
 
 		int bound = deflateBound(&stream, uncompressedSize);
@@ -382,12 +382,12 @@ Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 		err = deflate(&stream, Z_FINISH);
 		if (err != Z_STREAM_END)
 		{
-			return Status::Failed();
+			return false;
 		}
 		err = deflateEnd(&stream);
 		if (err != Z_OK)
 		{
-			return Status::Failed();
+			return false;
 		}
 		compressedSize = stream.total_out;
 	}
@@ -460,7 +460,7 @@ Status ZipWriter::AddFile(const fs::path& path, File file, int compression)
 	}
 	m_file.Write(data_ptr_to_write, data_size_to_write);
 
-	return Status::Succeeded();
+	return true;
 }
 
 Status ZipWriter::CreateDirectory(const fs::path& path)
@@ -471,7 +471,7 @@ Status ZipWriter::CreateDirectory(const fs::path& path)
 	std::string dir_path = path;
 
 	if (dir_path.size() == 0)
-		return Status::Failed();
+		return false;
 	if (dir_path[dir_path.size()-1] == '\\')
 		dir_path[dir_path.size()-1] = '/';
 	dir_path = NormalizePath(dir_path);
@@ -496,7 +496,7 @@ Status ZipWriter::CreateDirectory(const fs::path& path)
 
 	m_file.Write(fileHeader);
 	m_file.Write((uint8_t*)dir_path.c_str(), dir_path.size());
-	return Status::Succeeded();
+	return true;
 }
 
 ZipWriter::~ZipWriter()
