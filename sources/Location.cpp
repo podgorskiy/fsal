@@ -46,7 +46,7 @@ path Location::GetSytemPath(Options relartiveTo)
 	case kTemp:
 		char buff[1024];
 		GetTempPath(1024, buff);
-		return path(buff) / m_filepath;
+		return path(buff);
 #endif
 #ifdef __linux__
 	case kTemp:
@@ -58,7 +58,7 @@ path Location::GetSytemPath(Options relartiveTo)
 		fs::temp_directory_path();
 		if (folder == nullptr)
 			folder = "/tmp";
-		return path(folder) / m_filepath;;
+		return path(folder);
 		#endif
 	}
 	case kLog:

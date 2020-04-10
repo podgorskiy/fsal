@@ -59,7 +59,11 @@ Status StdFile::Open(path filepath, Mode mode)
 	std::wstring wmodeStr;
 	std::string smodeStr(modeStr);
 	wmodeStr.assign(smodeStr.begin(), smodeStr.end());
-	m_file = _wfopen(m_path.wstring().c_str(), wmodeStr.c_str());
+	errno_t error = _wfopen_s(&m_file, m_path.wstring().c_str(), wmodeStr.c_str());
+	if (error != 0)
+	{
+		return Status::Failed();
+	}
 #else
 	m_file = std::fopen(m_path.string().c_str(), modeStr);
 #endif

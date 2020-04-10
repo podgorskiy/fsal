@@ -1,4 +1,5 @@
 #pragma once
+#include <stdint.h>
 
 #ifndef USING_BOOST_FOR_PATHS
 #define USING_CPP11_EXPERIMENTAL_FOR_PATHS 1
@@ -16,7 +17,10 @@ namespace fsal
 
 #elif USING_CPP11_EXPERIMENTAL_FOR_PATHS
 
-#if (__cplusplus == 201402L)
+#if (__cplusplus == 201402L ||  _MSC_VER >= 1900)
+#ifdef _MSC_VER
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#endif
 #include <experimental/filesystem>
 
 namespace fsal
