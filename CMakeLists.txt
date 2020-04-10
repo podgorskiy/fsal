@@ -12,16 +12,13 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 if (FSAL_EXAMPLES OR FSAL_TESTS)
-	find_package(doctest REQUIRED)
 	configure_file(thirdparty/CMakeLists.txt.in thirdparty/CMakeLists.txt)
 	execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty")
 	execute_process(COMMAND "${CMAKE_COMMAND}" --build .
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty" )
 
-    message(Doctest:  ${DOCTEST_INCLUDE_DIR})
-    include_directories(${DOCTEST_INCLUDE_DIR})
-
+    include_directories(thirdparty/src/doctest/doctest)
 	include_directories(thirdparty/src/zlib)
 	include_directories(thirdparty/src/lz4/lib)
 
@@ -56,7 +53,7 @@ endif()
 
 if (FSAL_TESTS)
     add_executable(tests tests/main.cpp)
-    target_link_libraries(tests PRIVATE fsal stdc++fs zlib_static lz4 doctest::doctest)
+    target_link_libraries(tests PRIVATE fsal stdc++fs zlib_static lz4)
 
     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         target_compile_options(tests PRIVATE -lc++experimental -lc++fs)
