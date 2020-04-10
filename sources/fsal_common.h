@@ -17,7 +17,7 @@ namespace fsal
 
 #elif USING_CPP11_EXPERIMENTAL_FOR_PATHS
 
-#if (__cplusplus == 201402L ||  _MSC_VER >= 1900)
+#if (__cpp_lib_experimental_filesystem || (__cplusplus == 201402L ||  _MSC_VER >= 1900)) && !__cpp_lib_filesystem
 #ifdef _MSC_VER
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #endif
@@ -29,7 +29,7 @@ namespace fsal
 	typedef std::experimental::filesystem::path path;
 }
 
-#elif (__cplusplus >= 201703L)
+#elif (__cplusplus >= 201703L) || __cpp_lib_filesystem
 #include <filesystem>
 
 namespace fsal

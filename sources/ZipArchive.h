@@ -84,7 +84,7 @@ namespace fsal
 	{
 		size_t sizeCompressed = 0;
 		size_t sizeUncompressed = 0;
-		ptrdiff_t offset = -1;
+		ssize_t offset = -1;
 		int16_t	compressionMethod = 0;
 		int16_t	generalPurposeBitFlag = 0;
 	};
