@@ -6,16 +6,21 @@ option(FSAL_TESTS "Build fsal tests" OFF)
 
 set (CMAKE_CXX_STANDARD 14)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message("Clang detected. Asking for cxx 17. Reason: #include <experimental/filesystem> seems to not work on cxx 14 on Clang")
+    set (CMAKE_CXX_STANDARD 17)
+endif()
 
 if (FSAL_EXAMPLES OR FSAL_TESTS)
 	find_package(doctest REQUIRED)
-    include_directories(${DOCTEST_INCLUDE_DIR})
-
 	configure_file(thirdparty/CMakeLists.txt.in thirdparty/CMakeLists.txt)
 	execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty")
 	execute_process(COMMAND "${CMAKE_COMMAND}" --build .
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/thirdparty" )
+
+    message(Doctest:  ${DOCTEST_INCLUDE_DIR})
+    include_directories(${DOCTEST_INCLUDE_DIR})
 
 	include_directories(thirdparty/src/zlib)
 	include_directories(thirdparty/src/lz4/lib)
