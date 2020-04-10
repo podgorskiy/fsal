@@ -95,7 +95,7 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 	{
 		absolutePath = "";
 		archive = Archive();
-		return Status::Failed();
+		return false;
 	}
 
 	// First check. Current directory or system path. Performed if "Archives" is not specified.
@@ -108,7 +108,7 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 			type = fs::is_directory(fullpath) ? kDirectory : kFile;
 			absolutePath = fullpath;
 			archive = Archive();
-			return Status::Succeeded();
+			return true;
 		}
 	}
 
@@ -131,7 +131,7 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 					type = fs::is_directory(fullpath) ? kDirectory : kFile;
 					absolutePath = fullpath;
 					archive = Archive();
-					return Status::Succeeded();
+					return true;
 				}
 			}
 		}
@@ -148,16 +148,16 @@ Status fsal::FileSystem::Find(const Location& location, path& absolutePath, Path
 				type = location.m_type;
 				absolutePath = location.m_filepath;
 				archive = *it;
-				return Status::Succeeded();
+				return true;
 			}
 		}
 
 		absolutePath = "";
 		archive = Archive();
-		return Status::Failed();
+		return false;
 	}
 
-	return Status::Failed();
+	return false;
 }
 
 File fsal::FileSystem::Open(const Location& location, Mode mode, bool lockable)
@@ -236,11 +236,11 @@ Status fsal::FileSystem::Rename(const Location& srcLocation, const Location& dst
 {
 	if (srcLocation.m_relartiveTo == Location::kAbsolute && !srcLocation.m_filepath.is_absolute())
 	{
-		return Status::Failed();
+		return false;
 	}
 	if (dstLocation.m_relartiveTo == Location::kAbsolute && !dstLocation.m_filepath.is_absolute())
 	{
-		return Status::Failed();
+		return false;
 	}
 
 	PathType type;
@@ -257,7 +257,7 @@ Status fsal::FileSystem::Rename(const Location& srcLocation, const Location& dst
 		{
 			if (archiveSrc.Valid() || archiveDst.Valid())
 			{
-				return Status::Failed();
+				return false;
 			}
 			else
 			{
@@ -268,7 +268,7 @@ Status fsal::FileSystem::Rename(const Location& srcLocation, const Location& dst
 		}
 	}
 
-	return Status::Failed();
+	return false;
 }
 
 
@@ -281,7 +281,7 @@ Status fsal::FileSystem::Remove(const Location& location)
 	{
 		if (archive.Valid())
 		{
-			return Status::Failed();
+			return false;
 		}
 		else
 		{
@@ -296,7 +296,7 @@ Status fsal::FileSystem::Remove(const Location& location)
 		}
 	}
 
-	return Status::Failed();
+	return false;
 }
 
 
@@ -307,7 +307,7 @@ Status fsal::FileSystem::CreateDirectory(const Location& location)
 	Archive archive;
 	if (Find(location, absolutePath, type, archive).ok())
 	{
-		return Status::Failed();
+		return false;
 	}
 	else
 	{
@@ -317,7 +317,7 @@ Status fsal::FileSystem::CreateDirectory(const Location& location)
 		{
 			if (archive.Valid())
 			{
-				return Status::Failed();
+				return false;
 			}
 			else
 			{
@@ -326,7 +326,7 @@ Status fsal::FileSystem::CreateDirectory(const Location& location)
 		}
 		else
 		{
-			return Status::Failed();
+			return false;
 		}
 	}
 }

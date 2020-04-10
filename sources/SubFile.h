@@ -18,7 +18,7 @@ namespace fsal
 
 		path GetPath() const override;
 
-		Status Open(path filepath, Mode mode) override { return Status::Failed(); };
+		Status Open(path filepath, Mode mode) override { return false; };
 
 		Status ReadData(uint8_t* dst, size_t size, size_t* bytesRead) override;
 

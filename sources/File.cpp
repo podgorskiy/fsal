@@ -57,7 +57,7 @@ Status File::Seek(ptrdiff_t offset, Origin origin) const
 	case Origin::End:
 		return m_file->SetPosition(m_file->GetSize() + offset);
 	}
-	return Status::Failed();
+	return false;
 }
 
 size_t File::Tell() const
