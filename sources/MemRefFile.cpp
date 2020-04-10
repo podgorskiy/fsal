@@ -55,24 +55,24 @@ path MemRefFile::GetPath() const
 
 Status MemRefFile::Open(path filepath, Mode mode)
 {
-	return Status::Failed();
+	return false;
 }
 
 Status MemRefFile::ReadData(uint8_t* dst, size_t size, size_t* pbytesRead)
 {
-	Status status;
+	Status status = true;
 	if (m_size <= m_offset)
 	{
-		return Status::Failed();
+		return false;
 	}
-	else if (m_size < m_offset + size)
+	else if (m_size <= m_offset + size)
 	{
 		size = m_size - m_offset;
+		status.state |= Status::kEOF;
 	}
 
 	memcpy(dst, m_data + m_offset, size);
 	m_offset += size;
-	status = Status::Succeeded();
 
 	if (pbytesRead != nullptr)
 	{
@@ -87,15 +87,15 @@ Status MemRefFile::WriteData(const uint8_t* src, size_t size)
 	{
 		memcpy(m_data + m_offset, src, size);
 		m_offset += size;
-		return Status::Succeeded();
+		return true;
 	}
-	return Status::Failed();
+	return false;
 }
 
 Status MemRefFile::SetPosition(size_t position) const
 {
 	m_offset = position;
-	return Status::Succeeded();
+	return true;
 }
 
 size_t MemRefFile::GetPosition() const
@@ -110,7 +110,7 @@ size_t MemRefFile::GetSize() const
 
 Status MemRefFile::FlushBuffer() const
 {
-	return Status::Succeeded();
+	return true;
 }
 
 const uint8_t* MemRefFile::GetDataPointer() const
