@@ -7,14 +7,18 @@ namespace fsal
 	{
 		enum State : uint8_t
 		{
-			kOK = 0,
-			kEOF = 1 << 0,
-			kFailed = 1 << 1
+			kEOF = 1u << 0u,
+			kFailed = 1u << 1u
 		};
 
 		bool ok() const
 		{
-			return state == kOK;
+			return !(state & kFailed);
+		}
+
+		bool is_eof() const
+		{
+			return state & kEOF;
 		}
 
 		Status() :state(kFailed)
@@ -25,7 +29,7 @@ namespace fsal
 		{
 		}
 
-		Status(bool state) :state(state ? kOK : kFailed)
+		Status(bool state) :state(state ? State(0) : kFailed)
 		{
 		}
 		
@@ -35,21 +39,6 @@ namespace fsal
 		}
 		
 		State state;
-
-		static Status Failed()
-		{
-			return Status(kFailed);
-		}
-
-		static Status Succeeded()
-		{
-			return Status(kOK);
-		}
-
-		static Status EndOfFile()
-		{
-			return Status(kEOF);
-		}
 	};
 
 	inline Status::State operator | (Status::State a, Status::State b)
