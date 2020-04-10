@@ -3,6 +3,48 @@
 #include "doctest.h"
 
 
+TEST_CASE("API_demo")
+{
+	fsal::FileSystem fs;
+	fs.PushSearchPath("some_path/"); // Adding search path
+	fs.PushSearchPath("../"); // Adding another search path
+
+	fs.CreateDirectory("some_path"); // Creating directory
+	fs.Open("some_path/test.txt", fsal::kWrite) = std::string("test content"); // Writing std::string to a file
+
+	std::string content = fs.Open("test.txt"); // Reading file to std::string (we can open it because of the search path)
+	CHECK(content == "test content");
+
+	auto file = fs.Open("somefile.bin"); // Open file for reading
+
+	size_t size = file.GetSize(); // Getting size
+	CHECK(size == 128);
+	fsal::path path = file.GetPath(); // Get path of the file
+	CHECK(path.filename() == "somefile.bin");
+
+	file.Seek(110, fsal::File::Beginning); // Seek file
+
+	uint32_t some_int;
+	file.Read(some_int); // Reading 4-byte unsigned int
+
+	int16_t some_short;
+	file.Read(some_short); // Reading 2-byte signed int
+
+	uint8_t buff[200];
+	auto status = file.Read(buff, 10); // Reading 10 bytes to buff
+	bool is_eof = status.is_eof(); // is EOF?
+	CHECK(status.ok());
+	CHECK(!is_eof);
+
+	status = file.Read(some_short); // Reading one more time 2-byte signed int to reach end (no EOF yet, it's generated only when reading beyond end of file)
+	CHECK(status.ok());
+	CHECK(!status.is_eof());
+
+	status = file.Read(some_short); // Reading again and getting EOF
+	CHECK(status.ok());
+	CHECK(status.is_eof());
+}
+
 TEST_CASE("Filepath normalization")
 {
 		CHECK(fsal::NormalizePath("./test_folder/folder_inside/../folder_inside/./") == "test_folder/folder_inside/");
