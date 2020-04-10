@@ -4,13 +4,8 @@ project (fsal)
 option(FSAL_EXAMPLES "Build fsal examples" OFF)
 option(FSAL_TESTS "Build fsal tests" OFF)
 
-if (CMAKE_VERSION VERSION_LESS "3.1")
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        set (CMAKE_CXX_FLAGS "--std=c++14 ${CMAKE_CXX_FLAGS}")
-    endif ()
-else ()
-    set (CMAKE_CXX_STANDARD 14)
-endif ()
+set (CMAKE_CXX_STANDARD 14)
+
 
 if (FSAL_EXAMPLES OR FSAL_TESTS)
 	find_package(doctest REQUIRED)

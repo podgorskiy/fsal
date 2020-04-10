@@ -5,10 +5,6 @@
 #define USING_CPP11_EXPERIMENTAL_FOR_PATHS 1
 #endif
 
-#if defined(__clang__) && (__clang_major__ >= 6)
-#define CLANG_VER_GE_6
-#endif
-
 #ifdef USING_BOOST_FOR_PATHS
 
 #include <boost/filesystem.hpp>
@@ -21,7 +17,7 @@ namespace fsal
 
 #elif USING_CPP11_EXPERIMENTAL_FOR_PATHS
 
-#if (defined(__cpp_lib_experimental_filesystem) || (__cplusplus == 201402L ||  _MSC_VER >= 1900)) && !defined(__cpp_lib_filesystem) && !defined(CLANG_VER_GE_6)
+#if (defined(__cpp_lib_experimental_filesystem) || (__cplusplus == 201402L ||  _MSC_VER >= 1900)) && !defined(__cpp_lib_filesystem)
 #ifdef _MSC_VER
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #endif
@@ -33,7 +29,7 @@ namespace fsal
 	typedef std::experimental::filesystem::path path;
 }
 
-#elif (__cplusplus >= 201703L) || defined(__cpp_lib_filesystem) || defined(CLANG_VER_GE_6)
+#elif (__cplusplus >= 201703L) || defined(__cpp_lib_filesystem)
 #include <filesystem>
 
 namespace fsal
