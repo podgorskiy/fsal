@@ -1,7 +1,8 @@
 # File System Abstraction Layer
+[![Build Status](https://travis-ci.org/podgorskiy/fsal.svg?branch=master)](https://travis-ci.org/github/podgorskiy/fsal)
+
 
 ![Banner](https://repository-images.githubusercontent.com/141553188/8d423700-7ace-11ea-97a3-d1ab9deb0700)
-
 
 FSAL is a C++ library that provides an abstract layer over a filesystem.
 
