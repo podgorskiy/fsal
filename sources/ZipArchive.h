@@ -91,7 +91,7 @@ namespace fsal
 
 #pragma pack(pop)
 
-	class ZipReader: ArchiveReaderInterface
+	class ZipReader: public ArchiveReaderInterface
 	{
 	public:
 		Status OpenArchive(File file);
@@ -118,7 +118,7 @@ namespace fsal
 		}
 		return Archive();
 	}
-	class ZipWriter : ArchiveWriterInterface
+	class ZipWriter : public ArchiveWriterInterface
 	{
 	public:
 		ZipWriter(const File& file);

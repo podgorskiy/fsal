@@ -19,6 +19,11 @@ File Archive::OpenFile(const fs::path& filepath)
 	return m_impl->OpenFile(filepath);
 }
 
+void* Archive::OpenFile(const fs::path& filepath, std::function<void*(size_t size)> alloc_func)
+{
+	return m_impl->OpenFile(filepath, std::move(alloc_func));
+}
+
 bool Archive::Exists(const fs::path& filepath, PathType type)
 {
 	return m_impl->Exists(filepath, type);
