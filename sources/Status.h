@@ -7,6 +7,7 @@ namespace fsal
 	{
 		enum State : uint8_t
 		{
+			kOk = 0,
 			kEOF = 1u << 0u,
 			kFailed = 1u << 1u
 		};

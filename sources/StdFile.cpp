@@ -73,13 +73,16 @@ Status StdFile::ReadData(uint8_t* dst, size_t size, size_t* bytesRead)
 	{
 		*bytesRead = retSize;
 	}
-	return retSize == size ? true : (std::feof(m_file) ? Status::kEOF: false);
+	bool eof = std::feof(m_file);
+	bool error = std::ferror(m_file);
+	return (error ? Status::kFailed: Status::kOk) | (eof ? Status::kEOF: Status::kOk);
 }
 
 Status StdFile::WriteData(const uint8_t* src, size_t size)
 {
 	size_t writeSize = std::fwrite(src, 1, size, m_file);
-	return writeSize == size;
+	bool error = std::ferror(m_file);
+	return (writeSize == size) && !error;
 }
 
 Status StdFile::SetPosition(size_t position) const

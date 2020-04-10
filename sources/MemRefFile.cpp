@@ -63,9 +63,13 @@ Status MemRefFile::ReadData(uint8_t* dst, size_t size, size_t* pbytesRead)
 	Status status = true;
 	if (m_size <= m_offset)
 	{
-		return false;
+		if (pbytesRead != nullptr)
+		{
+			*pbytesRead = 0;
+		}
+		return Status::kEOF;
 	}
-	else if (m_size <= m_offset + size)
+	else if (m_size < m_offset + size)
 	{
 		size = m_size - m_offset;
 		status.state |= Status::kEOF;

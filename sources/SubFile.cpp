@@ -28,7 +28,7 @@ Status SubFile::ReadData(uint8_t* dst, size_t size, size_t* bytesRead)
 {
 	if (m_pointer >= m_size)
 	{
-		return Status::kEOF | Status::kFailed;
+		return Status::kEOF;
 	}
 	File::LockGuard guard(m_file.get());
 	m_file->SetPosition(m_pointer + m_offset);
@@ -37,7 +37,7 @@ Status SubFile::ReadData(uint8_t* dst, size_t size, size_t* bytesRead)
 	ssize_t _size = std::min(m_pointer + size, m_size) - m_pointer;
 	auto tmp = m_file->ReadData(dst, _size, read);
 	m_pointer += *read;
-	tmp.state |= m_pointer >= m_size ? Status::kEOF: Status::State(0);
+	tmp.state |= (m_pointer + size > m_size) ? Status::kEOF: Status::kOk;
 	return tmp;
 }
 
@@ -45,15 +45,14 @@ Status SubFile::WriteData(const uint8_t* src, size_t size)
 {
 	if (m_pointer >= m_size)
 	{
-		return Status::kEOF | Status::kFailed;
+		return Status::kEOF;
 	}
 	File::LockGuard guard(m_file.get());
 	m_file->SetPosition(m_pointer + m_offset);
 	ssize_t _size = std::min(m_pointer + size, m_size) - m_pointer;
 	auto tmp = m_file->WriteData(src, _size);
 	m_pointer += _size;
-	tmp.state |= m_pointer == m_size ? Status::kEOF: Status::State(0);
-	tmp.state |= m_pointer + size > m_size ? Status::kFailed: Status::State(0);
+	tmp.state |= (m_pointer + size > m_size) ? (Status::kFailed | Status::kEOF): Status::kOk;
 	return tmp;
 }
 
