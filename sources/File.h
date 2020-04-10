@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <mutex>
+#include <stddef.h>
 
 
 namespace fsal

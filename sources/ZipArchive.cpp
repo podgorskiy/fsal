@@ -5,6 +5,7 @@
 #include "MemRefFile.h"
 #include "SubFile.h"
 #include <cassert>
+#include <stddef.h>
 #include <lz4.h>
 #include <lz4hc.h>
 #include <zlib.h>
