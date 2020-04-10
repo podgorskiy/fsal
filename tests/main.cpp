@@ -226,7 +226,7 @@ TEST_CASE("MountUncompressedZIP")
 	}
 }
 
-TEST_CASE("MountVpk")
+TEST_CASE("MountVpk" * doctest::skip())
 {
 	printf("\nVPK\n");
 	fsal::FileSystem fs;
